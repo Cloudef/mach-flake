@@ -1,0 +1,30 @@
+{
+  "mach-latest": {
+    "version": "0.12.0-dev.1092+68ed78775",
+    "date": "manual",
+    "docs": "https://ziglang.org/documentation/master/",
+    "stdDocs": "https://ziglang.org/documentation/master/std/",
+    "machDocs": "https://machengine.org/about/nominated-zig",
+    "machNominated": "not-offically-nominated",
+    "x86_64-macos": {
+      "shasum": "6a27a527acde935fabe1bf9dbbed3f6251f6cc35065e96b55657f0ad74db6ecd",
+      "size": "49257912",
+      "tarball": "https://pkg.machengine.org/zig/zig-macos-x86_64-0.12.0-dev.1092+68ed78775.tar.xz"
+    },
+    "aarch64-macos": {
+      "shasum": "2cdad5f21a168440a12aced702cafedd4acdc05c0845c99c1ed53e9fe40fc02e",
+      "size": "45736764",
+      "tarball": "https://pkg.machengine.org/zig/zig-macos-aarch64-0.12.0-dev.1092+68ed78775.tar.xz"
+    },
+    "x86_64-linux": {
+      "shasum": "23b64daa21b4ba9997bbd4c09a809f6d93829fdde61b64fd192ff2367afff612",
+      "size": "47037880",
+      "tarball": "https://pkg.machengine.org/zig/zig-linux-x86_64-0.12.0-dev.1092+68ed78775.tar.xz"
+    },
+    "aarch64-linux": {
+      "shasum": "c87e830e89a49cbed444c8dd849e7ea3817d245bbce3cbda7968233dd8f03be5",
+      "size": "43414348",
+      "tarball": "https://pkg.machengine.org/zig/zig-linux-aarch64-0.12.0-dev.1092+68ed78775.tar.xz"
+    }
+  }
+}

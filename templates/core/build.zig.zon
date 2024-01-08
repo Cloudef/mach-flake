@@ -1,0 +1,15 @@
+.{
+    .name = "mach-core-project",
+    .version = "0.1.0",
+    .paths = .{
+      "build.zig.zon",
+      "build.zig",
+      "src",
+    },
+    .dependencies = .{
+      .mach_core = .{
+        .url = "https://pkg.machengine.org/mach-core/90c927e20d045035152d9b0b421ea45db7e5569c.tar.gz",
+        .hash = "12209c255c69822b57cd8906754bbee815e69678741d48a64e945168e611874da662",
+      },
+    },
+}
