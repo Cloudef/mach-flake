@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
-    mach.url = "github:Cloudef/mach-flake?rev=5e93e52eb085fd15d20a3a6f130a6e98cbd9ed4c";
+    mach.url = "github:Cloudef/mach-flake?rev=48119d403712523ab59b0cc5450050add288cb43";
   };
 
   outputs = { flake-utils, nixpkgs, mach, ... }:
