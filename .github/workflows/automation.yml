@@ -20,8 +20,12 @@ jobs:
           nix run .#test
       - uses: test-room-7/action-update-file@v1.6.0
         with:
-          file-path: |
-            versions.json
-            templates/**
-          commit-msg: Automated update
+          file-path: versions.json
+          commit-msg: Mach nominated Zig version update
+          github-token: ${{ secrets.GH_TOKEN }}
+      - run: nix run .#update-templates
+      - uses: test-room-7/action-update-file@v1.6.0
+        with:
+          file-path: templates/**
+          commit-msg: Template rev update
           github-token: ${{ secrets.GH_TOKEN }}
