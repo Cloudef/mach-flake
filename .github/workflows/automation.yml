@@ -18,9 +18,12 @@ jobs:
           nix run .#update-versions > versions.json
           nix run .#update-templates
           nix run .#test
+          nix run .#readme > README.md
       - uses: test-room-7/action-update-file@v1.6.0
         with:
-          file-path: versions.json
+          file-path: |
+            versions.json
+            README.md
           commit-msg: Mach nominated Zig version update
           github-token: ${{ secrets.GH_TOKEN }}
       - run: nix run .#update-templates
