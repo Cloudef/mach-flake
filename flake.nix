@@ -78,7 +78,6 @@
         # Flake app helper
         app = deps: script: app-bare (deps ++ _deps) ''
           ${_extraApp}
-          env
           ${script}
           '';
 
