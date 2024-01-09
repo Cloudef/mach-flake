@@ -42,7 +42,7 @@
           ld_string = (concatStringsSep "/lib:" _linux_ld_preload) + "/lib";
         in ''
           export ZIG_BTRFS_WORKAROUND=1
-          export LD_LIBRARY_PATH="${ld_string}:$LD_LIBRARY_PATH"
+          export LD_LIBRARY_PATH="${ld_string}:''${LD_LIBRARY_PATH:-}"
         '';
 
         _deps = [ zig ] ++ customRuntimeDeps
