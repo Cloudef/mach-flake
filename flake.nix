@@ -31,6 +31,10 @@
         enableX11 ? true,
       }: let
         lib = pkgs.lib;
+
+        # Extra pkgs provided for convience
+        extraPkgs.qoi = import ./packages/qoi.nix { inherit pkgs; };
+
         # Solving platform specific spaghetti below
         _linux_deps = with pkgs; [ vulkan-loader ]
           ++ lib.optionals (enableX11) [ xorg.libX11 ]
@@ -54,6 +58,9 @@
       in rec {
         # Inherit given pkgs and zig version
         inherit pkgs zig;
+
+        # Inherit extraPkgs
+        inherit extraPkgs;
 
         # Flake app helper (without mach-env and allows running from non root dir)
         app-bare-no-root = deps: script: {
@@ -100,6 +107,9 @@
 
       # mach-env
       inherit mach-env;
+
+      # expose extraPkgs
+      packages = env.extraPkgs;
 
       # nix run
       apps.zig = mapAttrs (k: v: (mach-env {zig = v;}).app ''zig "$@"'') zigv;
