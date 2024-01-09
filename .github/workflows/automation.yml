@@ -9,9 +9,9 @@ jobs:
   automation:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install Nix
-        uses: cachix/install-nix-action@v18
+        uses: cachix/install-nix-action@v24
         with:
           nix_path: nixpkgs=channel:nixos-unstable
       - run: |
@@ -19,7 +19,7 @@ jobs:
           nix run .#update-templates
           nix run .#test
           nix run .#readme > README.md
-      - uses: test-room-7/action-update-file@v1.6.0
+      - uses: test-room-7/action-update-file@v1.8.0
         with:
           file-path: |
             versions.json
@@ -27,7 +27,7 @@ jobs:
           commit-msg: Mach nominated Zig version update
           github-token: ${{ secrets.GH_TOKEN }}
       - run: nix run .#update-templates
-      - uses: test-room-7/action-update-file@v1.6.0
+      - uses: test-room-7/action-update-file@v1.8.0
         with:
           file-path: templates/**
           commit-msg: Template rev update
