@@ -33,3 +33,9 @@ nix run .
 ```bash
 nix run github:Cloudef/mach-flake#zig.mach-latest -- version
 ```
+
+## Shell for building and running a Mach project
+
+```bash
+nix develop github:Cloudef/mach-flake
+```
