@@ -70,13 +70,48 @@ mach-env = {
   enableX11 ? true,
 }: {};
 
+#! --- Outputs of mach-env {} function.
+#!     access: (mach-env {}).thing
+
 #! QOI - The “Quite OK Image Format” for fast, lossless image compression
 #! Packages the `qoiconv` binary.
 #! <https://github.com/phoboslab/qoi/tree/master>
 extraPkgs.qoi = import ./packages/qoi.nix { inherit pkgs; };
 
-#! Architecture dependent flake outputs.
-#! access: `mach.outputs.thing.${system}`
+#! Inherit given pkgs and zig version
+inherit pkgs zig;
+
+#! Inherit extraPkgs
+inherit extraPkgs;
+
+#: Flake app helper (Without mach-env and root dir restriction).
+app-bare-no-root = deps: script: {
+  type = "app";
+  program = toString (pkgs.writeShellApplication {
+  name = "app";
+  runtimeInputs = [] ++ deps;
+  text = ''
+  # shellcheck disable=SC2059
+  error() { printf -- "error: $1" "''${@:1}" 1>&2; exit 1; }
+  ${script}
+  '';
+  }) + "/bin/app";
+};
+
+#! Flake app helper (Without mach-env).
+app-bare = deps: script: app-bare-no-root deps ''
+
+#! Flake app helper.
+app = deps: script: app-bare (deps ++ _deps) ''
+
+#: Creates dev shell.
+shell = pkgs.mkShell {
+  buildInputs = _deps;
+  shellHook = _extraShell;
+};
+
+#! --- Architecture dependent flake outputs.
+#!     access: `mach.outputs.thing.${system}`
 
 #! Mach nominated Zig versions.
 #! <https://machengine.org/about/nominated-zig/>
@@ -107,8 +142,8 @@ devShells.zig = mapAttrs (k: v: (mach-env {zig = v;}).shell) zigv;
 #! nix develop
 devShells.default = devShells.zig.mach-latest;
 
-#! Generic flake outputs.
-#! access: `mach.outputs.thing`
+#! --- Generic flake outputs.
+#!     access: `mach.outputs.thing`
 
 #: Mach engine project template
 #: nix flake init -t templates#engine
@@ -121,9 +156,9 @@ templates.engine = {
   
   ## Build & Run
   
-  ```
+  ---
   nix run .
-  ```
+  ---
   
   See flake.nix for more options.
   '';
@@ -140,9 +175,9 @@ templates.core = {
   
   ## Build & Run
   
-  ```
+  ---
   nix run .
-  ```
+  ---
   
   See flake.nix for more options.
   '';

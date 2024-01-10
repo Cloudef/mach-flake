@@ -41,6 +41,9 @@
       }: let
         lib = pkgs.lib;
 
+        #! --- Outputs of mach-env {} function.
+        #!     access: (mach-env {}).thing
+
         #! QOI - The “Quite OK Image Format” for fast, lossless image compression
         #! Packages the `qoiconv` binary.
         #! <https://github.com/phoboslab/qoi/tree/master>
@@ -72,13 +75,13 @@
           + lib.optionalString (pkgs.stdenv.isLinux) _linux_extra
           + lib.optionalString (pkgs.stdenv.isDarwin) _darwin_extra;
       in rec {
-        # Inherit given pkgs and zig version
+        #! Inherit given pkgs and zig version
         inherit pkgs zig;
 
-        # Inherit extraPkgs
+        #! Inherit extraPkgs
         inherit extraPkgs;
 
-        # Flake app helper (without mach-env and allows running from non root dir)
+        #: Flake app helper (Without mach-env and root dir restriction).
         app-bare-no-root = deps: script: {
           type = "app";
           program = toString (pkgs.writeShellApplication {
@@ -92,19 +95,19 @@
           }) + "/bin/app";
         };
 
-        # Flake app helper (without mach-env)
+        #! Flake app helper (Without mach-env).
         app-bare = deps: script: app-bare-no-root deps ''
           [[ -f ./flake.nix ]] || error 'Run this from the project root'
           ${script}
           '';
 
-        # Flake app helper
+        #! Flake app helper.
         app = deps: script: app-bare (deps ++ _deps) ''
           ${_extraApp}
           ${script}
           '';
 
-        # Creates dev shell
+        #: Creates dev shell.
         shell = pkgs.mkShell {
           buildInputs = _deps;
           shellHook = _extraShell;
@@ -118,8 +121,8 @@
       env = mach-env {};
       app = env.app-bare;
     in rec {
-      #! Architecture dependent flake outputs.
-      #! access: `mach.outputs.thing.${system}`
+      #! --- Architecture dependent flake outputs.
+      #!     access: `mach.outputs.thing.${system}`
 
       #! Mach nominated Zig versions.
       #! <https://machengine.org/about/nominated-zig/>
@@ -273,7 +276,7 @@
       Below is auto-generated dump of important outputs in this flake.
 
       ```nix
-      $(awk -f doc.awk flake.nix)
+      $(awk -f doc.awk flake.nix | sed "s/```/---/g")
       ```
       EOF
       '');
@@ -288,8 +291,8 @@
           '';
       };
     })) // rec {
-      #! Generic flake outputs.
-      #! access: `mach.outputs.thing`
+      #! --- Generic flake outputs.
+      #!     access: `mach.outputs.thing`
 
       #: Mach engine project template
       #: nix flake init -t templates#engine
