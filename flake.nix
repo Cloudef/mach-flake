@@ -43,25 +43,30 @@
         extraPkgs.qoi = import ./packages/qoi.nix { inherit pkgs; };
 
         # Solving platform specific spaghetti below
-        _linux_deps = with pkgs; [ vulkan-loader ]
-          ++ lib.optionals (enableX11) [ xorg.libX11 ]
-          ++ lib.optionals (enableWayland) [ wayland libxkbcommon ];
-        _linux_ld_preload = with pkgs; [ vulkan-loader ]
+        _linux_libs = with pkgs; [ vulkan-loader ]
           ++ lib.optionals (enableX11) [ xorg.libX11 ]
           ++ lib.optionals (enableWayland) [ wayland libxkbcommon ];
         _linux_extra = let
-          ld_string = (concatStringsSep "/lib:" _linux_ld_preload) + "/lib";
+          ld_string = lib.makeLibraryPath (_linux_libs ++ customRuntimeLibs);
         in ''
           export ZIG_BTRFS_WORKAROUND=1
           export LD_LIBRARY_PATH="${ld_string}:''${LD_LIBRARY_PATH:-}"
         '';
 
+        _darwin_extra = let
+          ld_string = lib.makeLibraryPath (customRuntimeLibs);
+        in ''
+          export DYLD_LIBRARY_PATH="${ld_string}:''${DYLD_LIBRARY_PATH:-}"
+        '';
+
         _deps = [ zig ] ++ customRuntimeDeps
-          ++ lib.optionals (pkgs.stdenv.isLinux) _linux_deps;
+          ++ lib.optionals (pkgs.stdenv.isLinux) _linux_libs;
         _extraApp = customAppHook
-          + lib.optionalString (pkgs.stdenv.isLinux) _linux_extra;
+          + lib.optionalString (pkgs.stdenv.isLinux) _linux_extra
+          + lib.optionalString (pkgs.stdenv.isDarwin) _darwin_extra;
         _extraShell = customDevShellHook
-          + lib.optionalString (pkgs.stdenv.isLinux) _linux_extra;
+          + lib.optionalString (pkgs.stdenv.isLinux) _linux_extra
+          + lib.optionalString (pkgs.stdenv.isDarwin) _darwin_extra;
       in rec {
         # Inherit given pkgs and zig version
         inherit pkgs zig;
