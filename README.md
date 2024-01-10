@@ -110,6 +110,13 @@ shell = pkgs.mkShell {
   shellHook = _extraShell;
 };
 
+#: Packages mach project.
+#: NOTE: Using tool like zon2nix is required as zig does not expose artifact hashes!
+#: <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
+package = attrs: pkgs.stdenvNoCC.mkDerivation (attrs // {
+  nativeBuildInputs = attrs.nativeBuildInputs ++ [ env.zig.hook ];
+};
+
 #! --- Architecture dependent flake outputs.
 #!     access: `mach.outputs.thing.${system}`
 
@@ -126,7 +133,7 @@ packages = env.extraPkgs;
 #! Run a Mach nominated version of a Zig compiler inside a `mach-env`.
 #! nix run#zig."mach-nominated-version"
 #! example: nix run#zig.mach-latest
-apps.zig = mapAttrs (k: v: (mach-env {zig = v;}).app ''zig "$@"'') zigv;
+apps.zig = mapAttrs (k: v: (mach-env {zig = v;}).app [] ''zig "$@"'') zigv;
 
 #! Run a latest Mach nominated version of a Zig compiler inside a `mach-env`.
 #! nix run

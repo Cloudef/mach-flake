@@ -113,6 +113,13 @@
           shellHook = _extraShell;
         };
 
+        #: Packages mach project.
+        #: NOTE: Using tool like zon2nix is required as zig does not expose artifact hashes!
+        #: <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
+        package = attrs: pkgs.stdenvNoCC.mkDerivation (attrs // {
+          nativeBuildInputs = attrs.nativeBuildInputs ++ [ env.zig.hook ];
+        });
+
         # TODO: utility for updating mach deps in build.zig.zon
         #       useful if downstream does `flake update`
       };
