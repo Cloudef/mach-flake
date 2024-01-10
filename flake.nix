@@ -8,14 +8,16 @@
 
   outputs = { flake-utils, nixpkgs, ... }: with builtins;
   (flake-utils.lib.eachDefaultSystem (system: let
-      # Mach nominated Zig versions
+      #! Structures.
+
+      # Mach nominated Zig versions.
       # <https://machengine.org/about/nominated-zig/>
       zigv = import ./versions.nix {
         inherit system;
         pkgs = nixpkgs.outputs.legacyPackages.${system};
       };
 
-      # Flake helper for Mach projects
+      #: Helper function for building and running Mach projects.
       mach-env = {
         # Overrideable nixpkgs.
         pkgs ? nixpkgs.outputs.legacyPackages.${system},
@@ -39,7 +41,9 @@
       }: let
         lib = pkgs.lib;
 
-        # Extra pkgs provided for convenience
+        #! QOI - The “Quite OK Image Format” for fast, lossless image compression
+        #! Packages the `qoiconv` binary.
+        #! <https://github.com/phoboslab/qoi/tree/master>
         extraPkgs.qoi = import ./packages/qoi.nix { inherit pkgs; };
 
         # Solving platform specific spaghetti below
@@ -114,20 +118,36 @@
       env = mach-env {};
       app = env.app-bare;
     in rec {
-      # zig for mach version
+      #! Architecture dependent flake outputs.
+      #! access: `mach.outputs.thing.${system}`
+
+      #! Mach nominated Zig versions.
+      #! <https://machengine.org/about/nominated-zig/>
       inherit zigv;
 
-      # mach-env
+      #! Helper function for building and running Mach projects.
       inherit mach-env;
 
-      # expose extraPkgs
+      #! Optional extra packages.
       packages = env.extraPkgs;
 
-      # nix run
+      #! Run a Mach nominated version of a Zig compiler inside a `mach-env`.
+      #! nix run#zig."mach-nominated-version"
+      #! example: nix run#zig.mach-latest
       apps.zig = mapAttrs (k: v: (mach-env {zig = v;}).app ''zig "$@"'') zigv;
 
-      # nix develop
+      #! Run a latest Mach nominated version of a Zig compiler inside a `mach-env`.
+      #! nix run
+      apps.default = apps.zig.mach-latest;
+
+      #! Develop shell for building and running Mach projects.
+      #! nix develop#zig."mach-nominated-version"
+      #! example: nix develop#zig.mach-latest
       devShells.zig = mapAttrs (k: v: (mach-env {zig = v;}).shell) zigv;
+
+      #! Develop shell for building and running Mach projects.
+      #! Uses `mach-latest` nominated Zig version.
+      #! nix develop
       devShells.default = devShells.zig.mach-latest;
 
       # nix run .#update-versions
@@ -204,7 +224,7 @@
       # nix run .#readme
       apps.readme = let
         project = "Mach Engine Flake";
-      in with env.pkgs; app [ jq ] (replaceStrings ["`"] ["\\`"] ''
+      in with env.pkgs; app [ gawk jq ] (replaceStrings ["`"] ["\\`"] ''
       cat <<EOF
       # ${project}
 
@@ -247,6 +267,14 @@
       ```bash
       nix develop github:Cloudef/mach-flake
       ```
+
+      ## Crude documentation
+
+      Below is auto-generated dump of important outputs in this flake.
+
+      ```nix
+      $(awk -f doc.awk flake.nix)
+      ```
       EOF
       '');
 
@@ -260,7 +288,11 @@
           '';
       };
     })) // rec {
-      # nix flake init -t templates#engine
+      #! Generic flake outputs.
+      #! access: `mach.outputs.thing`
+
+      #: Mach engine project template
+      #: nix flake init -t templates#engine
       templates.engine = {
         path = ./templates/engine;
         description = "Mach engine project";
@@ -278,7 +310,8 @@
           '';
       };
 
-      # nix flake init -t templates#core
+      #: Mach core project template
+      #: nix flake init -t templates#core
       templates.core = {
         path = ./templates/core;
         description = "Mach core project";
