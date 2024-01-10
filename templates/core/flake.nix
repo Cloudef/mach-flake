@@ -2,7 +2,7 @@
   description = "mach-core-project flake";
 
   inputs = {
-    mach.url = "github:Cloudef/mach-flake?rev=70ddceb163173d4b33633465f7de248c5a2c7e14";
+    mach.url = "github:Cloudef/mach-flake?rev=e0f34a8f63584c2ffdd3490398f2c8469fdbe23d";
   };
 
   outputs = { mach, ... }: let
@@ -13,15 +13,6 @@
       # <https://github.com/Cloudef/mach-flake/blob/master/flake.nix>
       env = mach.outputs.mach-env.${system} {};
     in {
-      # nix build
-      # <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
-      packages.default = env.pkgs.stdenvNoCC.mkDerivation {
-        pname = "mach-core-project";
-        version = "0.1.0";
-        nativeBuildInputs = [env.zig.hook];
-        src = ./.;
-      };
-
       # nix run .#
       apps.default = env.app [] "zig build run -- \"$@\"";
 
