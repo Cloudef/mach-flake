@@ -7,8 +7,7 @@
   };
 
   outputs = { flake-utils, nixpkgs, ... }: with builtins;
-  (flake-utils.lib.eachDefaultSystem (system:
-    let
+  (flake-utils.lib.eachDefaultSystem (system: let
       # Mach nominated Zig versions
       # <https://machengine.org/about/nominated-zig/>
       zigv = import ./versions.nix {
@@ -18,21 +17,29 @@
 
       # Flake helper for Mach projects
       mach-env = {
+        # Overrideable nixpkgs.
         pkgs ? nixpkgs.outputs.legacyPackages.${system},
+        # Zig version to use. Normally there is no need to change this.
         zig ? zigv.mach-latest,
+        # Additional runtime deps to inject into the helpers.
         customRuntimeDeps ? [],
-        customLdPreload ? [],
+        # Additional runtime libs to inject to the helpers.
+        # Gets included in LD_LIBRARY_PATH and DYLD_LIBRARY_PATH.
+        customRuntimeLibs ? [],
+        # Custom prelude in the flake app helper.
         customAppHook ? "",
+        # Custom prelude in the flake shell helper.
         customDevShellHook ? "",
-        # mach-core example currently panics
+        # Enable Wayland support.
+        # Disabled by default because mach-core example currently panics with:
         # error(mach): glfw: error.FeatureUnavailable: Wayland: The platform does not provide the window position
-        # so we disable wayland by default
         enableWayland ? false,
+        # Enable X11 support.
         enableX11 ? true,
       }: let
         lib = pkgs.lib;
 
-        # Extra pkgs provided for convience
+        # Extra pkgs provided for convenience
         extraPkgs.qoi = import ./packages/qoi.nix { inherit pkgs; };
 
         # Solving platform specific spaghetti below
