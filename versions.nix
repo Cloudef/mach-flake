@@ -7,7 +7,7 @@ let
   zig-system = concatStringsSep "-" (map (x: if x == "darwin" then "macos" else x) (splitString "-" system));
 in filterAttrs (n: v: v != null) (mapAttrs (k: v: let
   res = v."${zig-system}" or null;
-in if res == null then null else stdenv.mkDerivation {
+in if res == null then null else stdenv.mkDerivation (finalAttrs: {
   pname = "zig";
   inherit (v) version;
 
@@ -38,6 +38,7 @@ in if res == null then null else stdenv.mkDerivation {
     machNominated = v.machNominated;
     size = res.size;
     src = v.src;
+    hook = pkgs.zig.hook.override {zig = finalAttrs.finalPackage;};
   };
 
   meta = with lib; {
@@ -45,5 +46,6 @@ in if res == null then null else stdenv.mkDerivation {
     description = "General-purpose programming language and toolchain for maintaining robust, optimal, and reusable software";
     license = licenses.mit;
     platforms = platforms.unix;
+    maintainers = []; # needed by the setup hook
   };
-}) (fromJSON (readFile ./versions.json)))
+})) (fromJSON (readFile ./versions.json)))
