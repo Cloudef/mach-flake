@@ -9,7 +9,7 @@ in filterAttrs (n: v: v != null) (mapAttrs (k: v: let
   res = v."${zig-system}" or null;
 in if res == null then null else stdenv.mkDerivation {
   pname = "zig";
-  version = v.version;
+  inherit (v) version;
 
   src = pkgs.fetchurl {
     url = res.tarball;
