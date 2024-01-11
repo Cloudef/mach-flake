@@ -1,26 +1,26 @@
 {
   description = "mach engine flake";
+  inputs.zig2nix.url = "github:Cloudef/zig2nix";
 
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs";
-    flake-utils.url = "github:numtide/flake-utils";
-  };
-
-  outputs = { flake-utils, nixpkgs, ... }: with builtins;
-  (flake-utils.lib.eachDefaultSystem (system: let
+  outputs = { zig2nix, ... }: with builtins; let
+    flake-utils = zig2nix.inputs.flake-utils;
+  in (flake-utils.lib.eachDefaultSystem (system: let
       #! Structures.
+
+      zig-env = zig2nix.zig-env.${system};
+      _pkgs = (zig-env {}).pkgs;
 
       # Mach nominated Zig versions.
       # <https://machengine.org/about/nominated-zig/>
       zigv = import ./versions.nix {
         inherit system;
-        pkgs = nixpkgs.outputs.legacyPackages.${system};
+        pkgs = _pkgs;
       };
 
       #: Helper function for building and running Mach projects.
       mach-env = {
         # Overrideable nixpkgs.
-        pkgs ? nixpkgs.outputs.legacyPackages.${system},
+        pkgs ? _pkgs,
         # Zig version to use. Normally there is no need to change this.
         zig ? zigv.mach-latest,
         # Additional runtime deps to inject into the helpers.
@@ -39,8 +39,14 @@
         # Enable X11 support.
         enableX11 ? true,
       }: let
-        lib = pkgs.lib;
-
+        env = zig-env {
+          # https://nixos.wiki/wiki/Nix_Language_Quirks#Default_values_are_not_bound_in_.40_syntax
+          inherit pkgs zig;
+          inherit customRuntimeDeps customRuntimeLibs;
+          inherit customAppHook customDevShellHook;
+          inherit enableWayland enableX11;
+        };
+      in (env // {
         #! --- Outputs of mach-env {} function.
         #!     access: (mach-env {}).thing
 
@@ -49,80 +55,47 @@
         #! <https://github.com/phoboslab/qoi/tree/master>
         extraPkgs.qoi = import ./packages/qoi.nix { inherit pkgs; };
 
-        # Solving platform specific spaghetti below
-        _linux_libs = with pkgs; [ vulkan-loader ]
-          ++ lib.optionals (enableX11) [ xorg.libX11 ]
-          ++ lib.optionals (enableWayland) [ wayland libxkbcommon ];
-        _linux_extra = let
-          ld_string = lib.makeLibraryPath (_linux_libs ++ customRuntimeLibs);
-        in ''
-          export ZIG_BTRFS_WORKAROUND=1
-          export LD_LIBRARY_PATH="${ld_string}:''${LD_LIBRARY_PATH:-}"
-        '';
-
-        _darwin_extra = let
-          ld_string = lib.makeLibraryPath (customRuntimeLibs);
-        in ''
-          export DYLD_LIBRARY_PATH="${ld_string}:''${DYLD_LIBRARY_PATH:-}"
-        '';
-
-        _deps = [ zig ] ++ customRuntimeDeps
-          ++ lib.optionals (pkgs.stdenv.isLinux) _linux_libs;
-        _extraApp = customAppHook
-          + lib.optionalString (pkgs.stdenv.isLinux) _linux_extra
-          + lib.optionalString (pkgs.stdenv.isDarwin) _darwin_extra;
-        _extraShell = customDevShellHook
-          + lib.optionalString (pkgs.stdenv.isLinux) _linux_extra
-          + lib.optionalString (pkgs.stdenv.isDarwin) _darwin_extra;
-      in rec {
-        #! Inherit given pkgs and zig version
-        inherit pkgs zig;
-
-        #! Inherit extraPkgs
-        inherit extraPkgs;
-
-        #: Flake app helper (Without mach-env and root dir restriction).
-        app-bare-no-root = deps: script: {
-          type = "app";
-          program = toString (pkgs.writeShellApplication {
-            name = "app";
-            runtimeInputs = [] ++ deps;
-            text = ''
-              # shellcheck disable=SC2059
-              error() { printf -- "error: $1" "''${@:1}" 1>&2; exit 1; }
-              ${script}
-              '';
-          }) + "/bin/app";
-        };
-
-        #! Flake app helper (Without mach-env).
-        app-bare = deps: script: app-bare-no-root deps ''
-          [[ -f ./flake.nix ]] || error 'Run this from the project root'
-          ${script}
-          '';
-
-        #! Flake app helper.
-        app = deps: script: app-bare (deps ++ _deps) ''
-          ${_extraApp}
-          ${script}
-          '';
-
-        #: Creates dev shell.
-        shell = pkgs.mkShell {
-          buildInputs = _deps;
-          shellHook = _extraShell;
-        };
-
-        #: Packages mach project.
-        #: NOTE: Using tool like zon2nix is required as zig does not expose artifact hashes!
-        #: <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
-        package = attrs: pkgs.stdenvNoCC.mkDerivation (attrs // {
-          nativeBuildInputs = attrs.nativeBuildInputs ++ [ env.zig.hook ];
+        #! Packages mach project.
+        #! NOTE: You must first generate build.zig.zon.nix using zon2nix.
+        #!       It is recommended to commit the build.zig.zon.nix to your repo.
+        #! <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
+        package = with pkgs; let
+          mach-binaries = fromJSON (readFile ./mach-binaries.json);
+          abi = if (pkgs.stdenv.isLinux) then "musl" else "none";
+          triple = replaceStrings ["darwin"] ["macos"] "${system}-${abi}";
+          dawn-version = mach-binaries."dawn-${triple}".ver;
+          dawn-binary = fetchurl {
+            url = "https://github.com/hexops/mach-gpu-dawn/releases/download/${dawn-version}/libdawn_${triple}_release-fast.a.gz";
+            hash = mach-binaries."dawn-${triple}".lib;
+          };
+          dawn-headers = fetchurl {
+            url = "https://github.com/hexops/mach-gpu-dawn/releases/download/${dawn-version}/headers.json.gz";
+            hash = mach-binaries."dawn-${triple}".hdr;
+          };
+        in attrs: env.package (attrs // {
+          # https://github.com/hexops/mach-core/blob/main/build_examples.zig
+          NO_ENSURE_SUBMODULES = "true";
+          NO_ENSURE_GIT = "true";
+          zigBuildFlags = [ "--verbose" ];
+          # https://github.com/hexops/mach-gpu-dawn/blob/main/build.zig
+          postPatch = lib.optionalString (attrs ? postPatch) attrs.postPatch + ''
+            mkdir -p zig-cache/mach/gpu-dawn/${dawn-version}/${triple}/release-fast
+            (
+              cd zig-cache/mach/gpu-dawn/${dawn-version}
+              ${pkgs.gzip}/bin/gzip -d -c ${dawn-binary} > ${triple}/release-fast/libdawn.a
+              ${pkgs.gzip}/bin/gzip -d -c ${dawn-headers} > ${triple}/release-fast/headers.json
+              while read -r key; do
+                mkdir -p "$(dirname "$key")"
+                path="$(realpath $key)"
+                ${pkgs.jq}/bin/jq -r --arg k "$key" '."\($k)"' ${triple}/release-fast/headers.json > "$path"
+              done < <(${pkgs.jq}/bin/jq -r 'to_entries | .[] | .key' ${triple}/release-fast/headers.json)
+            )
+            '';
         });
 
         # TODO: utility for updating mach deps in build.zig.zon
         #       useful if downstream does `flake update`
-      };
+      });
 
       # Default mach env used by this flake
       env = mach-env {};
@@ -131,24 +104,30 @@
       #! --- Architecture dependent flake outputs.
       #!     access: `mach.outputs.thing.${system}`
 
-      #! Mach nominated Zig versions.
-      #! <https://machengine.org/about/nominated-zig/>
-      inherit zigv;
-
       #! Helper function for building and running Mach projects.
       inherit mach-env;
 
-      #! Optional extra packages.
-      packages = env.extraPkgs;
+      #! Expose mach nominated zig versions and extra packages.
+      #! <https://machengine.org/about/nominated-zig/>
+      packages = {
+        inherit (zig2nix.outputs.packages.${system}) zon2nix zon2json;
+        zig = zigv;
+      } // env.extraPkgs;
 
       #! Run a Mach nominated version of a Zig compiler inside a `mach-env`.
       #! nix run#zig."mach-nominated-version"
       #! example: nix run#zig.mach-latest
-      apps.zig = mapAttrs (k: v: (mach-env {zig = v;}).app [] ''zig "$@"'') zigv;
+      apps.zig = mapAttrs (k: v: (mach-env {zig = v;}).app-bare-no-root [] ''zig "$@"'') zigv;
 
       #! Run a latest Mach nominated version of a Zig compiler inside a `mach-env`.
       #! nix run
       apps.default = apps.zig.mach-latest;
+
+      #! zon2json: Converts zon files to json
+      apps.zon2json = zig2nix.outputs.apps.${system}.zon2json;
+
+      #! zon2nix: Converts build.zig.zon files to nix
+      apps.zon2nix = zig2nix.outputs.apps.${system}.zon2nix;
 
       #! Develop shell for building and running Mach projects.
       #! nix develop#zig."mach-nominated-version"
@@ -169,6 +148,7 @@
       apps.update-templates = with env.pkgs; app [ coreutils gnused git env.zig jq ] ''
         tmpdir="$(mktemp -d)"
         trap 'rm -rf "$tmpdir"' EXIT
+
         generate_zig_zon() {
         cat <<EOF
         .{
@@ -195,21 +175,13 @@
           generate_zig_zon "$1" "$2" "$url" "$hash"
         }
 
-        generate_json() {
-          while [[ $# -gt 0 ]]; do
-            url="https://pkg.machengine.org/$1/$2.tar.gz"
-            hash=$(cd "$tmpdir"; zig fetch "$url")
-            printf '{"%s":{"url":"%s","hash":"%s","rev":"%s"}}' "$1" "$url" "$hash" "$2"
-            shift 2
-          done | jq -s add
-        }
-
         flake_rev="$(git rev-parse HEAD)"
 
         read -r mach_engine_rev _ < <(git ls-remote https://github.com/hexops/mach.git HEAD)
         mkdir -p templates/engine
         generate mach-engine-project mach "$mach_engine_rev" > templates/engine/build.zig.zon
         sed "s/SED_REPLACE_REV/$flake_rev/" templates/flake.nix > templates/engine/flake.nix
+        (cd templates/engine; nix run --override-input mach ../.. .#zon2nix > build.zig.zon.nix)
 
         read -r mach_core_rev _ < <(git ls-remote https://github.com/hexops/mach-core.git HEAD)
         rm -rf templates/core
@@ -218,23 +190,62 @@
         generate mach-core-project mach-core "$mach_core_rev" > templates/core/build.zig.zon
         sed 's/mach-engine-project/mach-core-project/g' templates/flake.nix > templates/core/flake.nix
         sed -i "s/SED_REPLACE_REV/$flake_rev/" templates/core/flake.nix
+        (cd templates/core; nix run --override-input mach ../.. .#zon2nix > build.zig.zon.nix)
+        '';
 
-        generate_json \
-          mach "$mach_engine_rev" \
-          mach-core "$mach_core_rev" \
-          > templates/zig-deps.json
+      # nix run .#update-mach-binaries
+      apps.update-mach-binaries = with env.pkgs; app [ coreutils gnused gnugrep jq ] ''
+        tmpdir="$(mktemp -d)"
+        trap 'rm -rf "$tmpdir"' EXIT
+
+        extract_dawn_versions() {
+          grep -o 'mach-gpu-dawn/.*.tar.gz' | sed 's,.*/\([a-z0-9]*\).*,\1,' | sort -u | while read -r dawn_rev; do
+            curl -sL "https://raw.githubusercontent.com/hexops/mach-gpu-dawn/$dawn_rev/build.zig" |\
+              grep -o 'binary_version:.*"' | sed 's/.*=[ ]*"\([a-z0-9-]*\)"/\1/'
+          done
+        }
+
+        generate_json() {
+          extract_dawn_versions | sort -u | while read -r ver; do
+            curl -sL "https://github.com/hexops/mach-gpu-dawn/releases/download/$ver/headers.json.gz" -o "$tmpdir/dawn-headers.gz"
+            for triple in aarch64-linux-musl x86_64-linux-musl aarch64-macos-none x86_64-macos-none; do
+              curl -sL "https://github.com/hexops/mach-gpu-dawn/releases/download/$ver/libdawn_''${triple}_release-fast.a.gz" -o "$tmpdir/dawn-lib.gz"
+              cat <<EOF
+        {
+          "dawn-$triple": {
+            "ver": "$ver",
+            "lib": "$(nix hash file "$tmpdir/dawn-lib.gz")",
+            "hdr": "$(nix hash file "$tmpdir/dawn-headers.gz")"
+          }
+        }
+        EOF
+            done
+          done | jq -s add
+        }
+
+        generate_json < <(cat templates/*/build.zig.zon.nix)
         '';
 
       # nix run .#test
       apps.test = app [] ''
-        (cd templates/engine; nix run --override-input mach ../..  .#test)
-        (cd templates/core; nix run --override-input mach ../..  .#test)
+        (cd templates/engine; nix run --override-input mach ../.. .#test)
+        (cd templates/engine; nix run --override-input mach ../.. .#zon2json)
+        (cd templates/engine; nix build --override-input mach ../.. .)
+        rm -f templates/engine/result
+        rm -rf templates/engine/zig-out
+        rm -rf templates/engine/zig-cache
+        (cd templates/core; nix run --override-input mach ../.. .#test)
+        (cd templates/core; nix run --override-input mach ../.. .#zon2json)
+        (cd templates/core; nix build --override-input mach ../.. .)
+        rm -f templates/core/result
+        rm -rf templates/core/zig-out
+        rm -rf templates/core/zig-cache
         '';
 
       # nix run .#readme
       apps.readme = let
         project = "Mach Engine Flake";
-      in with env.pkgs; app [ gawk jq ] (replaceStrings ["`"] ["\\`"] ''
+      in with env.pkgs; app [ gawk packages.zon2json jq ] (replaceStrings ["`"] ["\\`"] ''
       cat <<EOF
       # ${project}
 
@@ -247,8 +258,8 @@
       [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
       * Mach Zig: `${env.zig.version} @ ${env.zig.machNominated}`
-      * Mach Engine: `$(jq -r '.mach.rev' templates/zig-deps.json)`
-      * Mach Core: `$(jq -r '."mach-core".rev' templates/zig-deps.json)`
+      * Mach Engine: `$(zon2json templates/engine/build.zig.zon | jq -r '.dependencies | .mach.url')`
+      * Mach Core: `$(zon2json templates/core/build.zig.zon | jq -r '.dependencies | .mach_core.url')`
 
       ## Mach Engine
 

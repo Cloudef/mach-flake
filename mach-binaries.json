@@ -1,0 +1,22 @@
+{
+  "dawn-aarch64-linux-musl": {
+    "ver": "release-06bc1ed",
+    "lib": "sha256-+jtTB7qSE18yIXXiGtGeebnXZLeJPmC6uDyVSw1QT2A=",
+    "hdr": "sha256-witZkr5IZaEAVUtjwNbLerCazQfsEJY1bthYdxbKYI8="
+  },
+  "dawn-x86_64-linux-musl": {
+    "ver": "release-06bc1ed",
+    "lib": "sha256-tLqL5hahdQrxZJVxQBkH0H68CbRBt39H2WHtaRcg5O0=",
+    "hdr": "sha256-witZkr5IZaEAVUtjwNbLerCazQfsEJY1bthYdxbKYI8="
+  },
+  "dawn-aarch64-macos-none": {
+    "ver": "release-06bc1ed",
+    "lib": "sha256-mpoSqNvkv7RMeOYFs57gBrR9+iEsOjmiAm5enCTViaA=",
+    "hdr": "sha256-witZkr5IZaEAVUtjwNbLerCazQfsEJY1bthYdxbKYI8="
+  },
+  "dawn-x86_64-macos-none": {
+    "ver": "release-06bc1ed",
+    "lib": "sha256-ebU2w2wYXZ6F47yvKt3KOD/TWVJr6TZ66axts5xdwLg=",
+    "hdr": "sha256-witZkr5IZaEAVUtjwNbLerCazQfsEJY1bthYdxbKYI8="
+  }
+}

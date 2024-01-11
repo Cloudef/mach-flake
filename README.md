@@ -9,8 +9,8 @@ https://machengine.org/
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 * Mach Zig: `0.12.0-dev.1092+68ed78775 @ not-offically-nominated`
-* Mach Engine: `6a76564ae76f56700619195e35b2832982e10ece`
-* Mach Core: `90c927e20d045035152d9b0b421ea45db7e5569c`
+* Mach Engine: `https://pkg.machengine.org/mach/3b180a58d55a8af3b8e3f6d87c9ff6f8d082c62c.tar.gz`
+* Mach Core: `https://pkg.machengine.org/mach-core/90c927e20d045035152d9b0b421ea45db7e5569c.tar.gz`
 
 ## Mach Engine
 
@@ -50,7 +50,7 @@ Below is auto-generated dump of important outputs in this flake.
 #: Helper function for building and running Mach projects.
 mach-env = {
   # Overrideable nixpkgs.
-  pkgs ? nixpkgs.outputs.legacyPackages.${system},
+  pkgs ? _pkgs,
   # Zig version to use. Normally there is no need to change this.
   zig ? zigv.mach-latest,
   # Additional runtime deps to inject into the helpers.
@@ -78,66 +78,36 @@ mach-env = {
 #! <https://github.com/phoboslab/qoi/tree/master>
 extraPkgs.qoi = import ./packages/qoi.nix { inherit pkgs; };
 
-#! Inherit given pkgs and zig version
-inherit pkgs zig;
-
-#! Inherit extraPkgs
-inherit extraPkgs;
-
-#: Flake app helper (Without mach-env and root dir restriction).
-app-bare-no-root = deps: script: {
-  type = "app";
-  program = toString (pkgs.writeShellApplication {
-  name = "app";
-  runtimeInputs = [] ++ deps;
-  text = ''
-  # shellcheck disable=SC2059
-  error() { printf -- "error: $1" "''${@:1}" 1>&2; exit 1; }
-  ${script}
-  '';
-  }) + "/bin/app";
-};
-
-#! Flake app helper (Without mach-env).
-app-bare = deps: script: app-bare-no-root deps ''
-
-#! Flake app helper.
-app = deps: script: app-bare (deps ++ _deps) ''
-
-#: Creates dev shell.
-shell = pkgs.mkShell {
-  buildInputs = _deps;
-  shellHook = _extraShell;
-};
-
-#: Packages mach project.
-#: NOTE: Using tool like zon2nix is required as zig does not expose artifact hashes!
-#: <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
-package = attrs: pkgs.stdenvNoCC.mkDerivation (attrs // {
-  nativeBuildInputs = attrs.nativeBuildInputs ++ [ env.zig.hook ];
-};
+#! Packages mach project.
+#! NOTE: You must first generate build.zig.zon.nix using zon2nix.
+#!       It is recommended to commit the build.zig.zon.nix to your repo.
+#! <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
+package = with pkgs; let
 
 #! --- Architecture dependent flake outputs.
 #!     access: `mach.outputs.thing.${system}`
 
-#! Mach nominated Zig versions.
-#! <https://machengine.org/about/nominated-zig/>
-inherit zigv;
-
 #! Helper function for building and running Mach projects.
 inherit mach-env;
 
-#! Optional extra packages.
-packages = env.extraPkgs;
+#! Expose mach nominated zig versions and extra packages.
+#! <https://machengine.org/about/nominated-zig/>
+packages = {
 
 #! Run a Mach nominated version of a Zig compiler inside a `mach-env`.
 #! nix run#zig."mach-nominated-version"
 #! example: nix run#zig.mach-latest
-apps.zig = mapAttrs (k: v: (mach-env {zig = v;}).app [] ''zig "$@"'') zigv;
+apps.zig = mapAttrs (k: v: (mach-env {zig = v;}).app-bare-no-root [] ''zig "$@"'') zigv;
 
 #! Run a latest Mach nominated version of a Zig compiler inside a `mach-env`.
 #! nix run
 apps.default = apps.zig.mach-latest;
+
+#! zon2json: Converts zon files to json
+apps.zon2json = zig2nix.outputs.apps.${system}.zon2json;
+
+#! zon2nix: Converts build.zig.zon files to nix
+apps.zon2nix = zig2nix.outputs.apps.${system}.zon2nix;
 
 #! Develop shell for building and running Mach projects.
 #! nix develop#zig."mach-nominated-version"
