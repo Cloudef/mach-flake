@@ -59,38 +59,38 @@
         #! NOTE: You must first generate build.zig.zon.nix using zon2nix.
         #!       It is recommended to commit the build.zig.zon.nix to your repo.
         #! <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
-        package = with pkgs; let
+        package = with pkgs; attrs: let
+          triple = replaceStrings ["darwin" "-unknown-"] ["macos" "-"] "${pkgs.stdenv.targetPlatform.config}";
+          target = if (attrs ? zigTarget) then attrs.zigTarget else triple;
           mach-binaries = fromJSON (readFile ./mach-binaries.json);
-          abi = if (pkgs.stdenv.isLinux) then "musl" else "none";
-          triple = replaceStrings ["darwin"] ["macos"] "${system}-${abi}";
-          dawn-version = mach-binaries."dawn-${triple}".ver;
+          dawn-version = mach-binaries."dawn-${target}".ver;
           dawn-binary = fetchurl {
-            url = "https://github.com/hexops/mach-gpu-dawn/releases/download/${dawn-version}/libdawn_${triple}_release-fast.a.gz";
-            hash = mach-binaries."dawn-${triple}".lib;
+            url = "https://github.com/hexops/mach-gpu-dawn/releases/download/${dawn-version}/libdawn_${target}_release-fast.a.gz";
+            hash = mach-binaries."dawn-${target}".lib;
           };
           dawn-headers = fetchurl {
             url = "https://github.com/hexops/mach-gpu-dawn/releases/download/${dawn-version}/headers.json.gz";
-            hash = mach-binaries."dawn-${triple}".hdr;
+            hash = mach-binaries."dawn-${target}".hdr;
           };
-        in attrs: env.package (attrs // {
+        in env.package (attrs // {
           # https://github.com/hexops/mach-core/blob/main/build_examples.zig
           NO_ENSURE_SUBMODULES = "true";
           NO_ENSURE_GIT = "true";
-          zigBuildFlags = [ "--verbose" ];
           # https://github.com/hexops/mach-gpu-dawn/blob/main/build.zig
           postPatch = lib.optionalString (attrs ? postPatch) attrs.postPatch + ''
-            mkdir -p zig-cache/mach/gpu-dawn/${dawn-version}/${triple}/release-fast
+            mkdir -p zig-cache/mach/gpu-dawn/${dawn-version}/${target}/release-fast
             (
               cd zig-cache/mach/gpu-dawn/${dawn-version}
-              ${pkgs.gzip}/bin/gzip -d -c ${dawn-binary} > ${triple}/release-fast/libdawn.a
-              ${pkgs.gzip}/bin/gzip -d -c ${dawn-headers} > ${triple}/release-fast/headers.json
+              ${pkgs.gzip}/bin/gzip -d -c ${dawn-binary} > ${target}/release-fast/libdawn.a
+              ${pkgs.gzip}/bin/gzip -d -c ${dawn-headers} > ${target}/release-fast/headers.json
               while read -r key; do
                 mkdir -p "$(dirname "$key")"
                 path="$(realpath $key)"
-                ${pkgs.jq}/bin/jq -r --arg k "$key" '."\($k)"' ${triple}/release-fast/headers.json > "$path"
-              done < <(${pkgs.jq}/bin/jq -r 'to_entries | .[] | .key' ${triple}/release-fast/headers.json)
+                ${pkgs.jq}/bin/jq -r --arg k "$key" '."\($k)"' ${target}/release-fast/headers.json > "$path"
+              done < <(${pkgs.jq}/bin/jq -r 'to_entries | .[] | .key' ${target}/release-fast/headers.json)
             )
             '';
+          # TODO: binary must be wrapped so glfw etc works
         });
 
         # TODO: utility for updating mach deps in build.zig.zon
@@ -208,7 +208,7 @@
         generate_json() {
           extract_dawn_versions | sort -u | while read -r ver; do
             curl -sL "https://github.com/hexops/mach-gpu-dawn/releases/download/$ver/headers.json.gz" -o "$tmpdir/dawn-headers.gz"
-            for triple in aarch64-linux-musl x86_64-linux-musl aarch64-macos-none x86_64-macos-none; do
+            for triple in aarch64-linux-musl x86_64-linux-musl aarch64-linux-gnu x86_64-linux-gnu aarch64-macos-none x86_64-macos-none; do
               curl -sL "https://github.com/hexops/mach-gpu-dawn/releases/download/$ver/libdawn_''${triple}_release-fast.a.gz" -o "$tmpdir/dawn-lib.gz"
               cat <<EOF
         {

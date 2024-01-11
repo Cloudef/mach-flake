@@ -9,6 +9,16 @@
     "lib": "sha256-tLqL5hahdQrxZJVxQBkH0H68CbRBt39H2WHtaRcg5O0=",
     "hdr": "sha256-witZkr5IZaEAVUtjwNbLerCazQfsEJY1bthYdxbKYI8="
   },
+  "dawn-aarch64-linux-gnu": {
+    "ver": "release-06bc1ed",
+    "lib": "sha256-YffKoVTwDr7MDkcqjytE2vvNQLlmpp8cCozBFGZJoL0=",
+    "hdr": "sha256-witZkr5IZaEAVUtjwNbLerCazQfsEJY1bthYdxbKYI8="
+  },
+  "dawn-x86_64-linux-gnu": {
+    "ver": "release-06bc1ed",
+    "lib": "sha256-cpYF8RvMj2q8W6rzt6TTji6SqJ5EpNmY8sAeWP1Safk=",
+    "hdr": "sha256-witZkr5IZaEAVUtjwNbLerCazQfsEJY1bthYdxbKYI8="
+  },
   "dawn-aarch64-macos-none": {
     "ver": "release-06bc1ed",
     "lib": "sha256-mpoSqNvkv7RMeOYFs57gBrR9+iEsOjmiAm5enCTViaA=",
