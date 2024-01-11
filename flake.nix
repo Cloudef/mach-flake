@@ -117,7 +117,7 @@
       #! Run a Mach nominated version of a Zig compiler inside a `mach-env`.
       #! nix run#zig."mach-nominated-version"
       #! example: nix run#zig.mach-latest
-      apps.zig = mapAttrs (k: v: (mach-env {zig = v;}).app-bare-no-root [] ''zig "$@"'') zigv;
+      apps.zig = mapAttrs (k: v: (mach-env {zig = v;}).app-no-root [] ''zig "$@"'') zigv;
 
       #! Run a latest Mach nominated version of a Zig compiler inside a `mach-env`.
       #! nix run
