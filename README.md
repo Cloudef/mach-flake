@@ -92,7 +92,7 @@ extraPkgs.qoi = import ./packages/qoi.nix { inherit pkgs; };
 #!    zigBuildZonLock: Path to build.zig.zon2json-lock file, defaults to build.zig.zon2json-lock.
 #!
 #! <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
-package = with pkgs; attrs: let
+package = pkgs.callPackage (pkgs.callPackage ./package.nix { inherit env; });
 
 #! Update Mach deps in build.zig.zon
 #! Handly helper if you decide to update mach-flake

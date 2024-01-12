@@ -69,37 +69,7 @@
         #!    zigBuildZonLock: Path to build.zig.zon2json-lock file, defaults to build.zig.zon2json-lock.
         #!
         #! <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
-        package = with pkgs; attrs: let
-          target = attrs.zigTarget or env.lib.nixTargetToZigTarget (env.lib.elaborate pkgs.stdenvNoCC.targetPlatform).parsed;
-          mach-binaries = fromJSON (readFile ./mach-binaries.json);
-          dawn-version = mach-binaries."dawn-${target}".ver;
-          dawn-binary = fetchurl {
-            url = "https://github.com/hexops/mach-gpu-dawn/releases/download/${dawn-version}/libdawn_${target}_release-fast.a.gz";
-            hash = mach-binaries."dawn-${target}".lib;
-          };
-          dawn-headers = fetchurl {
-            url = "https://github.com/hexops/mach-gpu-dawn/releases/download/${dawn-version}/headers.json.gz";
-            hash = mach-binaries."dawn-${target}".hdr;
-          };
-        in env.package (attrs // {
-          # https://github.com/hexops/mach-core/blob/main/build_examples.zig
-          NO_ENSURE_SUBMODULES = "true";
-          NO_ENSURE_GIT = "true";
-          # https://github.com/hexops/mach-gpu-dawn/blob/main/build.zig
-          postPatch = ''
-            mkdir -p zig-cache/mach/gpu-dawn/${dawn-version}/${target}/release-fast
-            (
-              cd zig-cache/mach/gpu-dawn/${dawn-version}
-              ${pkgs.gzip}/bin/gzip -d -c ${dawn-binary} > ${target}/release-fast/libdawn.a
-              ${pkgs.gzip}/bin/gzip -d -c ${dawn-headers} > ${target}/release-fast/headers.json
-              while read -r key; do
-                mkdir -p "$(dirname "$key")"
-                path="$(realpath $key)"
-                ${pkgs.jq}/bin/jq -r --arg k "$key" '."\($k)"' ${target}/release-fast/headers.json > "$path"
-              done < <(${pkgs.jq}/bin/jq -r 'to_entries | .[] | .key' ${target}/release-fast/headers.json)
-            )
-            '' + lib.optionalString (attrs ? postPatch) attrs.postPatch;
-        });
+        package = pkgs.callPackage (pkgs.callPackage ./package.nix { inherit env; });
 
         #! Update Mach deps in build.zig.zon
         #! Handly helper if you decide to update mach-flake
