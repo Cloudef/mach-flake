@@ -2,7 +2,7 @@
   description = "mach-core-project flake";
 
   inputs = {
-    mach.url = "github:Cloudef/mach-flake?rev=6ba197ebb1d2ecf1959a67374e83717c54601364";
+    mach.url = "github:Cloudef/mach-flake?rev=6afc8db3b65b9ea38e5f141cbc09982bf83b9680";
   };
 
   outputs = { mach, ... }: let
@@ -29,6 +29,9 @@
 
       # nix run .#zon2json
       apps.zon2json = env.app [env.zon2json] "zon2json \"$@\"";
+
+      # nix run .#zon2json-lock
+      apps.zon2json-lock = env.app [env.zon2json-lock] "zon2json-lock \"$@\"";
 
       # nix run .#zon2nix
       apps.zon2nix = env.app [env.zon2nix] "zon2nix \"$@\"";

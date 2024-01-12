@@ -79,10 +79,16 @@ mach-env = {
 extraPkgs.qoi = import ./packages/qoi.nix { inherit pkgs; };
 
 #! Packages mach project.
-#! NOTE: You must first generate build.zig.zon.nix using zon2nix.
-#!       It is recommended to commit the build.zig.zon.nix to your repo.
+#! NOTE: You must first generate build.zig.zon2json-lock using zon2json-lock.
+#!       It is recommended to commit the build.zig.zon2json-lock to your repo.
+#!
+#! Additional attributes:
+#!    zigTarget: Specify target for zig compiler, defaults to nix host.
+#!    zigBuildZon: Path to build.zig.zon file, defaults to build.zig.zon.
+#!    zigBuildZonLock: Path to build.zig.zon2json-lock file, defaults to build.zig.zon2json-lock.
+#!
 #! <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
-package = with pkgs; let
+package = with pkgs; attrs: let
 
 #! --- Architecture dependent flake outputs.
 #!     access: `mach.outputs.thing.${system}`
@@ -97,7 +103,7 @@ packages = {
 #! Run a Mach nominated version of a Zig compiler inside a `mach-env`.
 #! nix run#zig."mach-nominated-version"
 #! example: nix run#zig.mach-latest
-apps.zig = mapAttrs (k: v: (mach-env {zig = v;}).app-bare-no-root [] ''zig "$@"'') zigv;
+apps.zig = mapAttrs (k: v: (mach-env {zig = v;}).app-no-root [] ''zig "$@"'') zigv;
 
 #! Run a latest Mach nominated version of a Zig compiler inside a `mach-env`.
 #! nix run
@@ -106,7 +112,10 @@ apps.default = apps.zig.mach-latest;
 #! zon2json: Converts zon files to json
 apps.zon2json = zig2nix.outputs.apps.${system}.zon2json;
 
-#! zon2nix: Converts build.zig.zon files to nix
+#! zon2json-lock: Converts build.zig.zon to a build.zig.zon2json lock file
+apps.zon2json-lock = zig2nix.outputs.apps.${system}.zon2json-lock;
+
+#! zon2nix: Converts build.zig.zon and build.zig.zon2json-lock to nix deriviation
 apps.zon2nix = zig2nix.outputs.apps.${system}.zon2nix;
 
 #! Develop shell for building and running Mach projects.

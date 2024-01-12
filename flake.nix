@@ -56,12 +56,17 @@
         extraPkgs.qoi = import ./packages/qoi.nix { inherit pkgs; };
 
         #! Packages mach project.
-        #! NOTE: You must first generate build.zig.zon.nix using zon2nix.
-        #!       It is recommended to commit the build.zig.zon.nix to your repo.
+        #! NOTE: You must first generate build.zig.zon2json-lock using zon2json-lock.
+        #!       It is recommended to commit the build.zig.zon2json-lock to your repo.
+        #!
+        #! Additional attributes:
+        #!    zigTarget: Specify target for zig compiler, defaults to nix host.
+        #!    zigBuildZon: Path to build.zig.zon file, defaults to build.zig.zon.
+        #!    zigBuildZonLock: Path to build.zig.zon2json-lock file, defaults to build.zig.zon2json-lock.
+        #!
         #! <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
         package = with pkgs; attrs: let
-          triple = replaceStrings ["darwin" "-unknown-"] ["macos" "-"] "${pkgs.stdenv.targetPlatform.config}";
-          target = if (attrs ? zigTarget) then attrs.zigTarget else triple;
+          target = attrs.zigTarget or env.lib.nixTargetToZigTarget (env.lib.elaborate {config = system;}).parsed;
           mach-binaries = fromJSON (readFile ./mach-binaries.json);
           dawn-version = mach-binaries."dawn-${target}".ver;
           dawn-binary = fetchurl {
@@ -77,7 +82,7 @@
           NO_ENSURE_SUBMODULES = "true";
           NO_ENSURE_GIT = "true";
           # https://github.com/hexops/mach-gpu-dawn/blob/main/build.zig
-          postPatch = lib.optionalString (attrs ? postPatch) attrs.postPatch + ''
+          postPatch = ''
             mkdir -p zig-cache/mach/gpu-dawn/${dawn-version}/${target}/release-fast
             (
               cd zig-cache/mach/gpu-dawn/${dawn-version}
@@ -89,7 +94,7 @@
                 ${pkgs.jq}/bin/jq -r --arg k "$key" '."\($k)"' ${target}/release-fast/headers.json > "$path"
               done < <(${pkgs.jq}/bin/jq -r 'to_entries | .[] | .key' ${target}/release-fast/headers.json)
             )
-            '';
+            '' + lib.optionalString (attrs ? postPatch) attrs.postPatch;
           # TODO: binary must be wrapped so glfw etc works
         });
 
@@ -110,7 +115,7 @@
       #! Expose mach nominated zig versions and extra packages.
       #! <https://machengine.org/about/nominated-zig/>
       packages = {
-        inherit (zig2nix.outputs.packages.${system}) zon2nix zon2json;
+        inherit (zig2nix.outputs.packages.${system}) zon2json zon2json-lock zon2nix;
         zig = zigv;
       } // env.extraPkgs;
 
@@ -126,7 +131,10 @@
       #! zon2json: Converts zon files to json
       apps.zon2json = zig2nix.outputs.apps.${system}.zon2json;
 
-      #! zon2nix: Converts build.zig.zon files to nix
+      #! zon2json-lock: Converts build.zig.zon to a build.zig.zon2json lock file
+      apps.zon2json-lock = zig2nix.outputs.apps.${system}.zon2json-lock;
+
+      #! zon2nix: Converts build.zig.zon and build.zig.zon2json-lock to nix deriviation
       apps.zon2nix = zig2nix.outputs.apps.${system}.zon2nix;
 
       #! Develop shell for building and running Mach projects.
@@ -145,7 +153,7 @@
         '';
 
       # nix run .#update-templates
-      apps.update-templates = with env.pkgs; app [ coreutils gnused git env.zig jq ] ''
+      apps.update-templates = with env.pkgs; app [ coreutils gnused git env.zig jq packages.zon2json ] ''
         tmpdir="$(mktemp -d)"
         trap 'rm -rf "$tmpdir"' EXIT
 
@@ -177,20 +185,30 @@
 
         flake_rev="$(git rev-parse HEAD)"
 
-        read -r mach_engine_rev _ < <(git ls-remote https://github.com/hexops/mach.git HEAD)
-        mkdir -p templates/engine
-        generate mach-engine-project mach "$mach_engine_rev" > templates/engine/build.zig.zon
-        sed "s/SED_REPLACE_REV/$flake_rev/" templates/flake.nix > templates/engine/flake.nix
-        (cd templates/engine; nix run --override-input mach ../.. .#zon2nix > build.zig.zon.nix)
+        read -r rev _ < <(git ls-remote https://github.com/hexops/mach.git HEAD)
+        old_url="$(zon2json templates/engine/build.zig.zon | jq '.dependencies.mach.url')"
+        if [[ "$old_url" != "https://pkg.machengine.org/mach/$rev.tar.gz" ]]; then
+          generate mach-engine-project mach "$rev" > templates/engine/build.zig.zon
+        fi
 
-        read -r mach_core_rev _ < <(git ls-remote https://github.com/hexops/mach-core.git HEAD)
-        rm -rf templates/core
-        git clone https://github.com/hexops/mach-core-starter-project.git templates/core
-        rm -rf templates/core/.git
-        generate mach-core-project mach-core "$mach_core_rev" > templates/core/build.zig.zon
+        sed "s/SED_REPLACE_REV/$flake_rev/" templates/flake.nix > templates/engine/flake.nix
+        (cd templates/engine; nix run --override-input mach ../.. .#zon2json-lock)
+
+        read -r rev _ < <(git ls-remote https://github.com/hexops/mach-core.git HEAD)
+        old_url="$(zon2json templates/core/build.zig.zon | jq '.dependencies."mach_core".url')"
+        if [[ "$old_url" != "https://pkg.machengine.org/mach-core/$rev.tar.gz" ]]; then
+          cp templates/core/build.zig.zon2json-lock "$tmpdir/core-lock"
+          rm -rf templates/core
+          git clone https://github.com/hexops/mach-core-starter-project.git templates/core
+          rm -rf templates/core/.git
+          generate mach-core-project mach-core "$rev" > templates/core/build.zig.zon
+          mv "$tmpdir/core-lock" templates/core/build.zig.zon2json-lock
+          git add templates/core/build.zig.zon2json-lock
+        fi
+
         sed 's/mach-engine-project/mach-core-project/g' templates/flake.nix > templates/core/flake.nix
         sed -i "s/SED_REPLACE_REV/$flake_rev/" templates/core/flake.nix
-        (cd templates/core; nix run --override-input mach ../.. .#zon2nix > build.zig.zon.nix)
+        (cd templates/core; nix run --override-input mach ../.. .#zon2json-lock)
         '';
 
       # nix run .#update-mach-binaries
@@ -199,7 +217,7 @@
         trap 'rm -rf "$tmpdir"' EXIT
 
         extract_dawn_versions() {
-          grep -o 'mach-gpu-dawn/.*.tar.gz' | sed 's,.*/\([a-z0-9]*\).*,\1,' | sort -u | while read -r dawn_rev; do
+          while read -r dawn_rev; do
             curl -sL "https://raw.githubusercontent.com/hexops/mach-gpu-dawn/$dawn_rev/build.zig" |\
               grep -o 'binary_version:.*"' | sed 's/.*=[ ]*"\([a-z0-9-]*\)"/\1/'
           done
@@ -223,7 +241,9 @@
           done | jq -s add
         }
 
-        generate_json < <(cat templates/*/build.zig.zon.nix)
+        generate_json < <(
+          jq -r '.[] | select(.name == "mach_gpu_dawn") | .url' templates/*/build.zig.zon2json-lock |\
+          sed 's,.*/\([a-z0-9]*\).*,\1,' | sort -u)
         '';
 
       # nix run .#test
