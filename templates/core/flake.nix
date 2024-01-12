@@ -2,7 +2,7 @@
   description = "mach-core-project flake";
 
   inputs = {
-    mach.url = "github:Cloudef/mach-flake?rev=2a4e5ca709ac5499cd68586dcb44bdada866ea31";
+    mach.url = "github:Cloudef/mach-flake?rev=35df31b2afa44bb9d7364c36df4073afd6f0835e";
   };
 
   outputs = { mach, ... }: let
@@ -12,10 +12,26 @@
       # Check the flake.nix in mach-flake project for more options:
       # <https://github.com/Cloudef/mach-flake/blob/master/flake.nix>
       env = mach.outputs.mach-env.${system} {};
-    in {
+    in rec {
       # nix package .
       packages.default = env.package {
         src = ./.;
+      };
+
+      # For bundling with nix bundle for running outside of nix
+      # example: https://github.com/ralismark/nix-appimage
+      apps.bundle = let
+        pkg = packages.default.override {
+          # This disables LD_LIBRARY_PATH mangling.
+          # vulkan-loader, x11, wayland, etc... won't be included in the bundle.
+          zigDisableWrap = true;
+
+          # Smaller binaries and avoids shipping glibc.
+          zigPreferMusl = true;
+        };
+      in {
+        type = "app";
+        program = "${pkg}/bin/myapp";
       };
 
       # nix run .
