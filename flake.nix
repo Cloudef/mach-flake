@@ -70,7 +70,7 @@
         #!
         #! <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
         package = with pkgs; attrs: let
-          target = attrs.zigTarget or env.lib.nixTargetToZigTarget (env.lib.elaborate {config = system;}).parsed;
+          target = attrs.zigTarget or env.lib.nixTargetToZigTarget (env.lib.elaborate pkgs.stdenvNoCC.targetPlatform).parsed;
           mach-binaries = fromJSON (readFile ./mach-binaries.json);
           dawn-version = mach-binaries."dawn-${target}".ver;
           dawn-binary = fetchurl {
