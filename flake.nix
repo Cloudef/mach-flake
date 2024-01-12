@@ -101,8 +101,24 @@
             '' + lib.optionalString (attrs ? postPatch) attrs.postPatch;
         });
 
-        # TODO: utility for updating mach deps in build.zig.zon
-        #       useful if downstream does `flake update`
+        #! Update Mach deps in build.zig.zon
+        #! Handly helper if you decide to update mach-flake
+        #! This does not update your build.zig.zon2json-lock file
+        update-mach-deps = let
+          mach = (env.lib.readBuildZigZon ./templates/engine/build.zig.zon).dependencies.mach;
+          core = (env.lib.readBuildZigZon ./templates/core/build.zig.zon).dependencies.mach_core;
+        in with pkgs; env.app [ gnused jq zig2nix.outputs.packages.${system}.zon2json ] ''
+          replace() {
+            while {
+              read -r url;
+              read -r hash;
+            } do
+              sed -i -e "s;$url;$2;" -e "s;$hash;$3;" build.zig.zon
+            done < <(zon2json build.zig.zon | jq -r ".dependencies.\"$1\" | .url, .hash")
+          }
+          replace mach "${mach.url}" "${mach.hash}"
+          replace mach_core "${core.url}" "${core.hash}"
+          '';
       });
 
       # Default mach env used by this flake

@@ -27,6 +27,9 @@
       # nix run .#docs
       apps.docs = env.app [] "zig build docs -- \"$@\"";
 
+      # nix run .#update-mach-deps
+      apps.update-mach-deps = env.update-mach-deps;
+
       # nix run .#zon2json
       apps.zon2json = env.app [env.zon2json] "zon2json \"$@\"";
 

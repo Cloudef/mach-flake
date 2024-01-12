@@ -94,6 +94,11 @@ extraPkgs.qoi = import ./packages/qoi.nix { inherit pkgs; };
 #! <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
 package = with pkgs; attrs: let
 
+#! Update Mach deps in build.zig.zon
+#! Handly helper if you decide to update mach-flake
+#! This does not update your build.zig.zon2json-lock file
+update-mach-deps = let
+
 #! --- Architecture dependent flake outputs.
 #!     access: `mach.outputs.thing.${system}`
 
