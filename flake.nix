@@ -32,6 +32,8 @@
         customAppHook ? "",
         # Custom prelude in the flake shell helper.
         customDevShellHook ? "",
+        # Enable Vulkan support.
+        enableVulkan ? true,
         # Enable Wayland support.
         # Disabled by default because mach-core example currently panics with:
         # error(mach): glfw: error.FeatureUnavailable: Wayland: The platform does not provide the window position
@@ -44,7 +46,7 @@
           inherit pkgs zig;
           inherit customRuntimeDeps customRuntimeLibs;
           inherit customAppHook customDevShellHook;
-          inherit enableWayland enableX11;
+          inherit enableVulkan enableWayland enableX11;
         };
       in (env // {
         #! --- Outputs of mach-env {} function.
@@ -95,7 +97,6 @@
               done < <(${pkgs.jq}/bin/jq -r 'to_entries | .[] | .key' ${target}/release-fast/headers.json)
             )
             '' + lib.optionalString (attrs ? postPatch) attrs.postPatch;
-          # TODO: binary must be wrapped so glfw etc works
         });
 
         # TODO: utility for updating mach deps in build.zig.zon

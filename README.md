@@ -62,6 +62,8 @@ mach-env = {
   customAppHook ? "",
   # Custom prelude in the flake shell helper.
   customDevShellHook ? "",
+  # Enable Vulkan support.
+  enableVulkan ? true,
   # Enable Wayland support.
   # Disabled by default because mach-core example currently panics with:
   # error(mach): glfw: error.FeatureUnavailable: Wayland: The platform does not provide the window position
