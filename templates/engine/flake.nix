@@ -2,7 +2,7 @@
   description = "mach-engine-project flake";
 
   inputs = {
-    mach.url = "github:Cloudef/mach-flake?rev=7df48cff348bcfbe050efb8544c47d4f8f58f253";
+    mach.url = "github:Cloudef/mach-flake?rev=364e0b95ae6c21ad87db5db9afb692f066fb89a4";
   };
 
   outputs = { mach, ... }: let
@@ -26,6 +26,9 @@
 
       # nix run .#docs
       apps.docs = env.app [] "zig build docs -- \"$@\"";
+
+      # nix run .#update-mach-deps
+      apps.update-mach-deps = env.update-mach-deps;
 
       # nix run .#zon2json
       apps.zon2json = env.app [env.zon2json] "zon2json \"$@\"";
