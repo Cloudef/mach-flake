@@ -237,18 +237,14 @@
 
       # nix run .#test
       apps.test = app [] ''
-        (cd templates/engine; nix run --override-input mach ../.. .#test)
-        (cd templates/engine; nix run --override-input mach ../.. .#zon2json)
-        (cd templates/engine; nix build --override-input mach ../.. .)
-        rm -f templates/engine/result
-        rm -rf templates/engine/zig-out
-        rm -rf templates/engine/zig-cache
-        (cd templates/core; nix run --override-input mach ../.. .#test)
-        (cd templates/core; nix run --override-input mach ../.. .#zon2json)
-        (cd templates/core; nix build --override-input mach ../.. .)
-        rm -f templates/core/result
-        rm -rf templates/core/zig-out
-        rm -rf templates/core/zig-cache
+        for var in engine core; do
+          (cd templates/"$var"; nix run --override-input mach ../.. .#test)
+          (cd templates/"$var"; nix run --override-input mach ../.. .#zon2json)
+          (cd templates/"$var"; nix build --override-input mach ../.. .)
+          rm -f templates/"$var"/result
+          rm -rf templates/"$var"/zig-out
+          rm -rf templates/"$var"/zig-cache
+        done
         '';
 
       # nix run .#readme
