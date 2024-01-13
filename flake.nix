@@ -108,15 +108,6 @@
       #! nix run
       apps.default = apps.zig.mach-latest;
 
-      #! zon2json: Converts zon files to json
-      apps.zon2json = zig2nix.outputs.apps.${system}.zon2json;
-
-      #! zon2json-lock: Converts build.zig.zon to a build.zig.zon2json lock file
-      apps.zon2json-lock = zig2nix.outputs.apps.${system}.zon2json-lock;
-
-      #! zon2nix: Converts build.zig.zon and build.zig.zon2json-lock to nix deriviation
-      apps.zon2nix = zig2nix.outputs.apps.${system}.zon2nix;
-
       #! Develop shell for building and running Mach projects.
       #! nix develop#zig."mach-nominated-version"
       #! example: nix develop#zig.mach-latest
