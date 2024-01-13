@@ -1,8 +1,8 @@
 {
-  pkgs ? import <nixpkgs> {}
-  , stdenv ? pkgs.stdenv
-  , lib ? pkgs.lib
-  , fetchFromGitHub ? pkgs.fetchFromGitHub
+  lib
+  , stdenv
+  , fetchFromGitHub
+  , stb
 }:
 
 let
@@ -18,7 +18,7 @@ in stdenv.mkDerivation {
     hash = "sha256-R91bf2gfc7PTgkhWhJ0GOSuQPcGZgRXgKUK6Iqzezgs=";
   };
 
-  makeFlags = [ "CFLAGS=-I${pkgs.stb}/include/stb" "conv" ];
+  makeFlags = [ "CFLAGS=-I${stb}/include/stb" "conv" ];
 
   installPhase = ''
     install -Dm755 qoiconv $out/bin/qoiconv

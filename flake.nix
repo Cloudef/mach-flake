@@ -12,9 +12,9 @@
 
       # Mach nominated Zig versions.
       # <https://machengine.org/about/nominated-zig/>
-      zigv = import ./versions.nix {
-        inherit system;
-        pkgs = _pkgs;
+      zigv = _pkgs.callPackage ./versions.nix {
+        zigSystem = (zig-env {}).lib.resolveSystem system;
+        zigHook = _pkgs.zig.hook;
       };
 
       #: Helper function for building and running Mach projects.
@@ -46,7 +46,7 @@
         #! QOI - The “Quite OK Image Format” for fast, lossless image compression
         #! Packages the `qoiconv` binary.
         #! <https://github.com/phoboslab/qoi/tree/master>
-        extraPkgs.qoi = import ./packages/qoi.nix { inherit pkgs; };
+        extraPkgs.qoi = pkgs.callPackage ./packages/qoi.nix {};
 
         #! Packages mach project.
         #! NOTE: You must first generate build.zig.zon2json-lock using zon2json-lock.
