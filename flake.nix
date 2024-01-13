@@ -241,7 +241,7 @@
       # nix run .#readme
       apps.readme = let
         project = "Mach Engine Flake";
-      in with env.pkgs; app [ gawk packages.zon2json jq ] (replaceStrings ["`"] ["\\`"] ''
+      in with env.pkgs; app [ gawk gnused packages.zon2json jq ] (replaceStrings ["`"] ["\\`"] ''
       cat <<EOF
       # ${project}
 

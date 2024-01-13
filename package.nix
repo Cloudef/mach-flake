@@ -9,7 +9,7 @@
 with builtins;
 
 let
-   target = env.lib.resolveTarget zigTarget stdenvNoCC zigPreferMusl;
+   target = env.lib.resolveTarget zigTarget stdenvNoCC.targetPlatform zigPreferMusl;
    mach-binaries = fromJSON (readFile ./mach-binaries.json);
 
    dawn-binary = let
