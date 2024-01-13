@@ -18,22 +18,16 @@
       };
 
       #: Helper function for building and running Mach projects.
+      #: For more options see zig-env from <https://github.com/Cloudef/zig2nix>
       mach-env = {
         # Overrideable nixpkgs.
         pkgs ? _pkgs,
         # Zig version to use. Normally there is no need to change this.
         zig ? zigv.mach-latest,
-        # Additional runtime deps to inject into the helpers.
-        customRuntimeDeps ? [],
-        # Additional runtime libs to inject to the helpers.
-        # Gets included in LD_LIBRARY_PATH and DYLD_LIBRARY_PATH.
-        customRuntimeLibs ? [],
-        # Custom prelude in the flake app helper.
-        customAppHook ? "",
-        # Custom prelude in the flake shell helper.
-        customDevShellHook ? "",
         # Enable Vulkan support.
         enableVulkan ? true,
+        # Enable OpenGL support.
+        enableOpenGL ? true,
         # Enable Wayland support.
         # Disabled by default because mach-core example currently panics with:
         # error(mach): glfw: error.FeatureUnavailable: Wayland: The platform does not provide the window position
@@ -41,12 +35,9 @@
         # Enable X11 support.
         enableX11 ? true,
       }: let
-        env = zig-env {
-          # https://nixos.wiki/wiki/Nix_Language_Quirks#Default_values_are_not_bound_in_.40_syntax
+        env = pkgs.callPackage zig-env {
           inherit pkgs zig;
-          inherit customRuntimeDeps customRuntimeLibs;
-          inherit customAppHook customDevShellHook;
-          inherit enableVulkan enableWayland enableX11;
+          inherit enableVulkan enableOpenGL enableWayland enableX11;
         };
       in (env // {
         #! --- Outputs of mach-env {} function.

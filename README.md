@@ -48,22 +48,16 @@ Below is auto-generated dump of important outputs in this flake.
 #! Structures.
 
 #: Helper function for building and running Mach projects.
+#: For more options see zig-env from <https://github.com/Cloudef/zig2nix>
 mach-env = {
   # Overrideable nixpkgs.
   pkgs ? _pkgs,
   # Zig version to use. Normally there is no need to change this.
   zig ? zigv.mach-latest,
-  # Additional runtime deps to inject into the helpers.
-  customRuntimeDeps ? [],
-  # Additional runtime libs to inject to the helpers.
-  # Gets included in LD_LIBRARY_PATH and DYLD_LIBRARY_PATH.
-  customRuntimeLibs ? [],
-  # Custom prelude in the flake app helper.
-  customAppHook ? "",
-  # Custom prelude in the flake shell helper.
-  customDevShellHook ? "",
   # Enable Vulkan support.
   enableVulkan ? true,
+  # Enable OpenGL support.
+  enableOpenGL ? true,
   # Enable Wayland support.
   # Disabled by default because mach-core example currently panics with:
   # error(mach): glfw: error.FeatureUnavailable: Wayland: The platform does not provide the window position
