@@ -9,8 +9,8 @@ https://machengine.org/
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 * Mach Zig: `0.12.0-dev.1092+68ed78775 @ not-offically-nominated`
-* Mach Engine: `https://pkg.machengine.org/mach/3b180a58d55a8af3b8e3f6d87c9ff6f8d082c62c.tar.gz`
-* Mach Core: `https://pkg.machengine.org/mach-core/90c927e20d045035152d9b0b421ea45db7e5569c.tar.gz`
+* Mach Engine: `3b180a58d55a8af3b8e3f6d87c9ff6f8d082c62c`
+* Mach Core: `90c927e20d045035152d9b0b421ea45db7e5569c`
 
 ## Mach Engine
 
@@ -72,7 +72,7 @@ mach-env = {
 #! QOI - The “Quite OK Image Format” for fast, lossless image compression
 #! Packages the `qoiconv` binary.
 #! <https://github.com/phoboslab/qoi/tree/master>
-extraPkgs.qoi = import ./packages/qoi.nix { inherit pkgs; };
+extraPkgs.qoi = pkgs.callPackage ./packages/qoi.nix {};
 
 #! Packages mach project.
 #! NOTE: You must first generate build.zig.zon2json-lock using zon2json-lock.

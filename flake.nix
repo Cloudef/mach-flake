@@ -231,7 +231,7 @@
 
         generate_json < <(
           jq -r '.[] | select(.name == "mach_gpu_dawn") | .url' templates/*/build.zig.zon2json-lock |\
-          sed 's,.*/\([a-z0-9]*\).*,\1,' | sort -u)
+          sed 's,.*/\([0-9a-f]*\).*,\1,' | sort -u)
         '';
 
       # nix run .#test
@@ -250,6 +250,10 @@
       apps.readme = let
         project = "Mach Engine Flake";
       in with env.pkgs; app [ gawk gnused packages.zon2json jq ] (replaceStrings ["`"] ["\\`"] ''
+      zonrev() {
+        zon2json templates/"$1"/build.zig.zon | jq --arg k "$2" -r '.dependencies."\($k)".url' |\
+          sed 's,^.*/\([0-9a-f]*\).*,\1,'
+      }
       cat <<EOF
       # ${project}
 
@@ -262,8 +266,8 @@
       [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
       * Mach Zig: `${env.zig.version} @ ${env.zig.machNominated}`
-      * Mach Engine: `$(zon2json templates/engine/build.zig.zon | jq -r '.dependencies | .mach.url')`
-      * Mach Core: `$(zon2json templates/core/build.zig.zon | jq -r '.dependencies | .mach_core.url')`
+      * Mach Engine: `$(zonrev engine mach)`
+      * Mach Core: `$(zonrev core mach_core)`
 
       ## Mach Engine
 
