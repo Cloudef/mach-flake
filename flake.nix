@@ -197,6 +197,8 @@
         sed 's/mach-engine-project/mach-core-project/g' templates/flake.nix > templates/core/flake.nix
         sed -i "s/SED_REPLACE_REV/$flake_rev/" templates/core/flake.nix
         (cd templates/core; nix run --override-input mach ../.. .#zon2json-lock)
+
+        nix run .#readme > README.md
         '';
 
       # nix run .#update-mach-binaries
