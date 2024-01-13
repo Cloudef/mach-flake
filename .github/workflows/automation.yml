@@ -32,5 +32,5 @@ jobs:
       - uses: test-room-7/action-update-file@v1.8.0
         with:
           file-path: templates/**
-          commit-msg: Template rev update
+          commit-msg: Update templates
           github-token: ${{ secrets.GITHUB_TOKEN }}

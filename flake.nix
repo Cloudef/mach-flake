@@ -164,18 +164,17 @@
         }
 
         flake_rev="$(git rev-parse HEAD)"
+        mach_update=0
 
         read -r rev _ < <(git ls-remote https://github.com/hexops/mach.git HEAD)
-        old_url="$(zon2json templates/engine/build.zig.zon | jq '.dependencies.mach.url')"
+        old_url="$(zon2json templates/engine/build.zig.zon | jq -r '.dependencies.mach.url')"
         if [[ "$old_url" != "https://pkg.machengine.org/mach/$rev.tar.gz" ]]; then
           generate mach-engine-project mach "$rev" > templates/engine/build.zig.zon
+          mach_update=1
         fi
 
-        sed "s/SED_REPLACE_REV/$flake_rev/" templates/flake.nix > templates/engine/flake.nix
-        (cd templates/engine; nix run --override-input mach ../.. .#zon2json-lock)
-
         read -r rev _ < <(git ls-remote https://github.com/hexops/mach-core.git HEAD)
-        old_url="$(zon2json templates/core/build.zig.zon | jq '.dependencies."mach_core".url')"
+        old_url="$(zon2json templates/core/build.zig.zon | jq -r '.dependencies.mach_core.url')"
         if [[ "$old_url" != "https://pkg.machengine.org/mach-core/$rev.tar.gz" ]]; then
           cp templates/core/build.zig.zon2json-lock "$tmpdir/core-lock"
           rm -rf templates/core
@@ -184,7 +183,16 @@
           generate mach-core-project mach-core "$rev" > templates/core/build.zig.zon
           mv "$tmpdir/core-lock" templates/core/build.zig.zon2json-lock
           git add templates/core/build.zig.zon2json-lock
+          mach_update=1
         fi
+
+        if [[ $mach_update == 0 ]] && [[ "$(git log --format=%B -n 1 HEAD)" == "Update templates" ]]; then
+          echo "Templates are up-to-date"
+          exit 0
+        fi
+
+        sed "s/SED_REPLACE_REV/$flake_rev/" templates/flake.nix > templates/engine/flake.nix
+        (cd templates/engine; nix run --override-input mach ../.. .#zon2json-lock)
 
         sed 's/mach-engine-project/mach-core-project/g' templates/flake.nix > templates/core/flake.nix
         sed -i "s/SED_REPLACE_REV/$flake_rev/" templates/core/flake.nix
