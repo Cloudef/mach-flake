@@ -120,7 +120,7 @@
 
       # nix run .#update-versions
       apps.update-versions = with env.pkgs; app [ curl jq ] ''
-        curl https://machengine.org/zig/index.json | jq 'with_entries(select(.key|(startswith("mach-") or endswith("-mach"))))'
+        curl -sSL https://machengine.org/zig/index.json | jq 'with_entries(select(.key|(startswith("mach-") or endswith("-mach"))))'
         '';
 
       # nix run .#update-templates
@@ -199,16 +199,16 @@
 
         extract_dawn_versions() {
           while read -r dawn_rev; do
-            curl -sL "https://raw.githubusercontent.com/hexops/mach-gpu-dawn/$dawn_rev/build.zig" |\
+            curl -sSL "https://raw.githubusercontent.com/hexops/mach-gpu-dawn/$dawn_rev/build.zig" |\
               grep -o 'binary_version:.*"' | sed 's/.*=[ ]*"\([a-z0-9-]*\)"/\1/'
           done
         }
 
         generate_json() {
           extract_dawn_versions | sort -u | while read -r ver; do
-            curl -sL "https://github.com/hexops/mach-gpu-dawn/releases/download/$ver/headers.json.gz" -o "$tmpdir/dawn-headers.gz"
+            curl -sSL "https://github.com/hexops/mach-gpu-dawn/releases/download/$ver/headers.json.gz" -o "$tmpdir/dawn-headers.gz"
             for triple in aarch64-linux-musl x86_64-linux-musl aarch64-linux-gnu x86_64-linux-gnu aarch64-macos-none x86_64-macos-none; do
-              curl -sL "https://github.com/hexops/mach-gpu-dawn/releases/download/$ver/libdawn_''${triple}_release-fast.a.gz" -o "$tmpdir/dawn-lib.gz"
+              curl -sSL "https://github.com/hexops/mach-gpu-dawn/releases/download/$ver/libdawn_''${triple}_release-fast.a.gz" -o "$tmpdir/dawn-lib.gz"
               cat <<EOF
         {
           "dawn-$triple": {
