@@ -154,7 +154,6 @@
           generate_zig_zon "$1" "$2" "$url" "$hash"
         }
 
-        flake_rev="$(git rev-parse HEAD)"
         mach_update=0
 
         read -r rev _ < <(git ls-remote https://github.com/hexops/mach.git HEAD)
@@ -182,14 +181,19 @@
           exit 0
         fi
 
-        sed "s/SED_REPLACE_REV/$flake_rev/" templates/flake.nix > templates/engine/flake.nix
-        (cd templates/engine; nix run --override-input mach ../.. .#zon2json-lock)
+        nix run .#update-templates-flake
+        for var in engine core; do
+          (cd templates/"$var"; nix run --override-input mach ../.. .#zon2json-lock)
+        done
+        nix run .#readme > README.md
+        '';
 
+      # nix run .#update-templates-flake
+      apps.update-templates-flake = with env.pkgs; app [ git gnused ] ''
+        flake_rev="$(git rev-parse HEAD)"
+        sed "s/SED_REPLACE_REV/$flake_rev/" templates/flake.nix > templates/engine/flake.nix
         sed 's/mach-engine-project/mach-core-project/g' templates/flake.nix > templates/core/flake.nix
         sed -i "s/SED_REPLACE_REV/$flake_rev/" templates/core/flake.nix
-        (cd templates/core; nix run --override-input mach ../.. .#zon2json-lock)
-
-        nix run .#readme > README.md
         '';
 
       # nix run .#update-mach-binaries
