@@ -17,11 +17,18 @@ jobs:
           nix run .#test
       - uses: test-room-7/action-update-file@v1.8.0
         with:
-          file-path: |
-            versions.json
-            mach-binaries.json
-            README.md
-          commit-msg: Mach nominated Zig version update
+          file-path: versions.json
+          commit-msg: Update versions.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: test-room-7/action-update-file@v1.8.0
+        with:
+          file-path: mach-binaries.json
+          commit-msg: Update mach-binaries.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: test-room-7/action-update-file@v1.8.0
+        with:
+          file-path: README.md
+          commit-msg: Update README
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix run .#update-templates-flake
       - uses: test-room-7/action-update-file@v1.8.0
