@@ -181,6 +181,7 @@
           exit 0
         fi
 
+        nix run .#update-versions > versions.json
         nix run .#update-templates-flake
         for var in engine core; do
           (cd templates/"$var"; nix run --override-input mach ../.. .#zon2json-lock)
