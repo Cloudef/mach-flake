@@ -185,6 +185,8 @@
         for var in engine core; do
           (cd templates/"$var"; nix run --override-input mach ../.. .#zon2json-lock)
         done
+
+        nix run .#update-mach-binaries > mach-binaries.json
         nix run .#readme > README.md
         '';
 
@@ -234,8 +236,11 @@
       # nix run .#test
       apps.test = app [] ''
         for var in engine core; do
+          printf -- 'run .#test (%s)\n' "$var"
           (cd templates/"$var"; nix run --override-input mach ../.. .#test)
+          printf -- 'run .#zon2json (%s)\n' "$var"
           (cd templates/"$var"; nix run --override-input mach ../.. .#zon2json)
+          printf -- 'build . (%s)\n' "$var"
           (cd templates/"$var"; nix build --override-input mach ../.. .)
           rm -f templates/"$var"/result
           rm -rf templates/"$var"/zig-out

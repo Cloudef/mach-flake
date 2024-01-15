@@ -15,9 +15,7 @@ jobs:
       - run: |
           nix run .#update-versions > versions.json
           nix run .#update-templates
-          nix run .#update-mach-binaries > mach-binaries.json
           nix run .#test
-          nix run .#readme > README.md
       - uses: test-room-7/action-update-file@v1.8.0
         with:
           file-path: |
