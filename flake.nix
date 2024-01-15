@@ -212,13 +212,13 @@
           mach_update=1
         fi
 
-        if [[ $mach_update == 0 ]] && [[ "$(git log --format=%B -n 1 HEAD)" == "Update templates" ]]; then
+        if [[ $mach_update == 0 ]]; then
           echo "Templates are up-to-date"
           exit 0
         fi
 
         nix run .#update-versions > versions.json
-        nix run .#update-templates-flake
+        nix run .#update-templates-flake -- force
         for var in engine core; do
           (cd templates/"$var"; nix run --override-input mach ../.. .#zon2json-lock)
           # Call using nix run because update-versions may change the mach nominated zig version
@@ -231,6 +231,10 @@
 
       # nix run .#update-templates-flake
       apps.update-templates-flake = with env.pkgs; app [ git gnused ] ''
+        if [[ "''${1-}" != "force" ]] && [[ "$(git log --format=%B -n 1 HEAD)" == "Update templates rev" ]]; then
+          echo "Template revisions are up-to-date"
+          exit 0
+        fi
         flake_rev="$(git rev-parse HEAD)"
         sed "s/SED_REPLACE_REV/$flake_rev/" templates/flake.nix > templates/engine/flake.nix
         sed 's/mach-engine-project/mach-core-project/g' templates/flake.nix > templates/core/flake.nix
