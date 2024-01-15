@@ -2,7 +2,7 @@
   description = "mach-core-project flake";
 
   inputs = {
-    mach.url = "github:Cloudef/mach-flake?rev=c82a325d47034a14c4998fd0b18be5966bcd5faa";
+    mach.url = "github:Cloudef/mach-flake?rev=0fd8d612c08ae90da17b9c8b658284990ae3b2f1";
   };
 
   outputs = { mach, ... }: let
@@ -16,6 +16,7 @@
       # nix package .
       packages.default = env.package {
         src = ./.;
+        zigBuildFlags = [ "-Doptimize=ReleaseSmall" ];
       };
 
       # For bundling with nix bundle for running outside of nix
