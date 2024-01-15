@@ -16,6 +16,7 @@
       # nix package .
       packages.default = env.package {
         src = ./.;
+        zigBuildFlags = [ "-Doptimize=ReleaseSmall" ];
       };
 
       # For bundling with nix bundle for running outside of nix

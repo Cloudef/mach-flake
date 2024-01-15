@@ -51,7 +51,9 @@ let
         machNominated = v.machNominated;
         size = res.size;
         src = v.src;
-        hook = zigHook.override {zig = finalAttrs.finalPackage;};
+        hook = callPackage zigHook {
+          zig = finalAttrs.finalPackage;
+        };
       };
 
       meta = with lib; {

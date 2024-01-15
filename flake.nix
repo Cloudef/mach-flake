@@ -14,7 +14,7 @@
       # <https://machengine.org/about/nominated-zig/>
       zigv = _pkgs.callPackage ./versions.nix {
         zigSystem = (zig-env {}).lib.resolveSystem system;
-        zigHook = _pkgs.zig.hook;
+        zigHook = (zig-env {}).zig-hook;
       };
 
       #: Helper function for building and running Mach projects.
