@@ -43,6 +43,41 @@
         #! --- Outputs of mach-env {} function.
         #!     access: (mach-env {}).thing
 
+        #! Autofix tool
+        #! https://github.com/ziglang/zig/issues/17584
+        autofix = pkgs.writeShellApplication {
+          name = "zig-autofix";
+          runtimeInputs = with pkgs; [ zig gnused gnugrep ];
+          text = ''
+            if [[ ! -d "$1" ]]; then
+              printf 'error: no such directory: %s\n' "$@"
+              exit 1
+            fi
+
+            cd "$@"
+            has_wontfix=0
+
+            while {
+                IFS=$':' read -r file line col msg;
+            } do
+              if [[ "$msg" ]]; then
+                case "$msg" in
+                  *"local variable is never mutated")
+                    printf 'autofix: %s\n' "$file:$line:$col:$msg" 1>&2
+                    sed -i "''${line}s/var/const/" "$file"
+                    ;;
+                  *)
+                    printf 'wontfix: %s\n' "$file:$line:$col:$msg" 1>&2
+                    has_wontfix=1
+                    ;;
+                esac
+              fi
+            done < <(zig build 2>&1 | grep "error:")
+
+            exit $has_wontfix
+            '';
+        };
+
         #! QOI - The “Quite OK Image Format” for fast, lossless image compression
         #! Packages the `qoiconv` binary.
         #! <https://github.com/phoboslab/qoi/tree/master>
@@ -96,6 +131,7 @@
       #! <https://machengine.org/about/nominated-zig/>
       packages = {
         inherit (zig2nix.outputs.packages.${system}) zon2json zon2json-lock zon2nix;
+        inherit (env) autofix;
         zig = zigv;
       } // env.extraPkgs;
 
@@ -124,7 +160,7 @@
         '';
 
       # nix run .#update-templates
-      apps.update-templates = with env.pkgs; app [ coreutils gnused git env.zig jq packages.zon2json ] ''
+      apps.update-templates = with env.pkgs; app [ coreutils gnused git env.zig jq packages.zon2json env.autofix ] ''
         tmpdir="$(mktemp -d)"
         trap 'rm -rf "$tmpdir"' EXIT
 
@@ -185,6 +221,7 @@
         nix run .#update-templates-flake
         for var in engine core; do
           (cd templates/"$var"; nix run --override-input mach ../.. .#zon2json-lock)
+          zig-autofix templates/"$var"
         done
 
         nix run .#update-mach-binaries > mach-binaries.json
