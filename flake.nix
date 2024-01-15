@@ -158,14 +158,14 @@
         mach_update=0
 
         read -r rev _ < <(git ls-remote https://github.com/hexops/mach.git HEAD)
-        old_url="$(zon2json templates/engine/build.zig.zon | jq -r '.dependencies.mach.url')"
+        old_url="$(zon2json templates/engine/build.zig.zon | jq -er '.dependencies.mach.url')"
         if [[ "$old_url" != "https://pkg.machengine.org/mach/$rev.tar.gz" ]]; then
           generate mach-engine-project mach "$rev" > templates/engine/build.zig.zon
           mach_update=1
         fi
 
         read -r rev _ < <(git ls-remote https://github.com/hexops/mach-core.git HEAD)
-        old_url="$(zon2json templates/core/build.zig.zon | jq -r '.dependencies.mach_core.url')"
+        old_url="$(zon2json templates/core/build.zig.zon | jq -er '.dependencies.mach_core.url')"
         if [[ "$old_url" != "https://pkg.machengine.org/mach-core/$rev.tar.gz" ]]; then
           cp templates/core/build.zig.zon2json-lock "$tmpdir/core-lock"
           rm -rf templates/core
@@ -219,11 +219,11 @@
         }
         EOF
             done
-          done | jq -s add
+          done | jq -es add
         }
 
         generate_json < <(
-          jq -r '.[] | select(.name == "mach_gpu_dawn") | .url' templates/*/build.zig.zon2json-lock |\
+          jq -er '.[] | select(.name == "mach_gpu_dawn") | .url' templates/*/build.zig.zon2json-lock |\
           sed 's,.*/\([0-9a-f]*\).*,\1,' | sort -u)
         '';
 
@@ -244,7 +244,7 @@
         project = "Mach Engine Flake";
       in with env.pkgs; app [ gawk gnused packages.zon2json jq ] (replaceStrings ["`"] ["\\`"] ''
       zonrev() {
-        zon2json templates/"$1"/build.zig.zon | jq --arg k "$2" -r '.dependencies."\($k)".url' |\
+        zon2json templates/"$1"/build.zig.zon | jq -e --arg k "$2" -r '.dependencies."\($k)".url' |\
           sed 's,^.*/\([0-9a-f]*\).*,\1,'
       }
       cat <<EOF

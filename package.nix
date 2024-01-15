@@ -37,8 +37,8 @@ let
             while read -r key; do
                mkdir -p "$(dirname "$key")"
                path="$(realpath $key)"
-               jq -r --arg k "$key" '."\($k)"' ${target}/release-fast/headers.json > "$path"
-            done < <(jq -r 'to_entries | .[] | .key' ${target}/release-fast/headers.json)
+               jq -er --arg k "$key" '."\($k)"' ${target}/release-fast/headers.json > "$path"
+            done < <(jq -er 'to_entries | .[] | .key' ${target}/release-fast/headers.json)
          )
          '';
    };
