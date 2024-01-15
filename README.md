@@ -8,9 +8,9 @@ https://machengine.org/
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-* Mach Zig: `0.12.0-dev.1092+68ed78775 @ not-offically-nominated`
-* Mach Engine: `5bea00d997c24bbd6944bb6e2f70198938aee043`
-* Mach Core: `90c927e20d045035152d9b0b421ea45db7e5569c`
+* Mach Zig: `0.12.0-dev.2063+804cee3b9 @ 2024-01-07`
+* Mach Engine: `7904b741456146929f852a835b909f4fd33f17ff`
+* Mach Core: `370bc1504cebaffcda5ed1ae9915fd2ac6778479`
 
 ## Mach Engine
 
@@ -68,6 +68,10 @@ mach-env = {
 
 #! --- Outputs of mach-env {} function.
 #!     access: (mach-env {}).thing
+
+#! Autofix tool
+#! https://github.com/ziglang/zig/issues/17584
+autofix = pkgs.writeShellApplication {
 
 #! QOI - The “Quite OK Image Format” for fast, lossless image compression
 #! Packages the `qoiconv` binary.
