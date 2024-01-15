@@ -160,7 +160,7 @@
         '';
 
       # nix run .#update-templates
-      apps.update-templates = with env.pkgs; app [ coreutils gnused git env.zig jq packages.zon2json env.autofix ] ''
+      apps.update-templates = with env.pkgs; app [ coreutils gnused git env.zig jq packages.zon2json ] ''
         tmpdir="$(mktemp -d)"
         trap 'rm -rf "$tmpdir"' EXIT
 
@@ -221,7 +221,8 @@
         nix run .#update-templates-flake
         for var in engine core; do
           (cd templates/"$var"; nix run --override-input mach ../.. .#zon2json-lock)
-          zig-autofix templates/"$var"
+          # Call using nix run because update-versions may change the mach nominated zig version
+          nix run .#autofix -- templates/"$var"
         done
 
         nix run .#update-mach-binaries > mach-binaries.json
