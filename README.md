@@ -50,8 +50,6 @@ Below is auto-generated dump of important outputs in this flake.
 #: Helper function for building and running Mach projects.
 #: For more options see zig-env from <https://github.com/Cloudef/zig2nix>
 mach-env = {
-  # Overrideable nixpkgs.
-  pkgs ? _pkgs,
   # Zig version to use. Normally there is no need to change this.
   zig ? zigv.mach-latest,
   # Enable Vulkan support.
@@ -64,7 +62,8 @@ mach-env = {
   enableWayland ? false,
   # Enable X11 support.
   enableX11 ? true,
-}: {};
+  ...
+};
 
 #! --- Outputs of mach-env {} function.
 #!     access: (mach-env {}).thing
@@ -77,6 +76,12 @@ autofix = pkgs.writeShellApplication {
 #! Packages the `qoiconv` binary.
 #! <https://github.com/phoboslab/qoi/tree/master>
 extraPkgs.qoi = pkgs.callPackage ./packages/qoi.nix {};
+
+#! Package for specific target supported by nix.
+#! You can still compile to other platforms by using package and specifying zigTarget.
+#! When compiling to non-nix supported targets, you can't rely on pkgsForTarget, but rather have to provide all the pkgs yourself.
+#! NOTE: Even though target is supported by nix, cross-compiling to it might not be, in that case you should get an error.
+packageForTarget = target: (env.pkgsForTarget target).callPackage (pkgs.callPackage ./package.nix { inherit env target; });
 
 #! Packages mach project.
 #! NOTE: You must first generate build.zig.zon2json-lock using zon2json-lock.
@@ -94,10 +99,10 @@ extraPkgs.qoi = pkgs.callPackage ./packages/qoi.nix {};
 #!    zigBuildZonLock: Path to build.zig.zon2json-lock file, defaults to build.zig.zon2json-lock.
 #!
 #! <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
-package = pkgs.callPackage (pkgs.callPackage ./package.nix { inherit env; });
+package = packageForTarget system;
 
 #! Update Mach deps in build.zig.zon
-#! Handly helper if you decide to update mach-flake
+#! Handy helper if you decide to update mach-flake
 #! This does not update your build.zig.zon2json-lock file
 update-mach-deps = let
 
@@ -107,9 +112,13 @@ update-mach-deps = let
 #! Helper function for building and running Mach projects.
 inherit mach-env;
 
-#! Expose mach nominated zig versions and extra packages.
-#! <https://machengine.org/about/nominated-zig/>
+#: Expose mach nominated zig versions and extra packages.
+#: <https://machengine.org/about/nominated-zig/>
 packages = {
+  inherit (zig2nix.outputs.packages.${system}) zon2json zon2json-lock zon2nix;
+  inherit (env) autofix;
+  zig = zigv;
+};
 
 #! Run a Mach nominated version of a Zig compiler inside a `mach-env`.
 #! nix run#zig."mach-nominated-version"
