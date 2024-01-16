@@ -89,10 +89,10 @@
         #!
         #! Additional attributes:
         #!    zigTarget: Specify target for zig compiler, defaults to nix host.
-        #:    zigInheritStdenv:
-        #:       By default if zigTarget is specified, nixpkgs stdenv compatible environment is not used.
-        #:       Set this to true, if you want to specify zigTarget, but still use the derived stdenv compatible environment.
-        #:    zigPreferMusl: Prefer musl libc without specifying the target.
+        #!    zigInheritStdenv:
+        #!       By default if zigTarget is specified, nixpkgs stdenv compatible environment is not used.
+        #!       Set this to true, if you want to specify zigTarget, but still use the derived stdenv compatible environment.
+        #!    zigPreferMusl: Prefer musl libc without specifying the target.
         #!    zigDisableWrap: makeWrapper will not be used. Might be useful if distributing outside nix.
         #!    zigWrapperArgs: Additional arguments to makeWrapper.
         #!    zigBuildZon: Path to build.zig.zon file, defaults to build.zig.zon.

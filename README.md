@@ -84,12 +84,10 @@ extraPkgs.qoi = pkgs.callPackage ./packages/qoi.nix {};
 #!
 #! Additional attributes:
 #!    zigTarget: Specify target for zig compiler, defaults to nix host.
-#:    zigInheritStdenv:
-
-#:    zigInheritStdenv:
-#:       By default if zigTarget is specified, nixpkgs stdenv compatible environment is not used.
-#:       Set this to true, if you want to specify zigTarget, but still use the derived stdenv compatible environment.
-#:    zigPreferMusl: Prefer musl libc without specifying the target.
+#!    zigInheritStdenv:
+#!       By default if zigTarget is specified, nixpkgs stdenv compatible environment is not used.
+#!       Set this to true, if you want to specify zigTarget, but still use the derived stdenv compatible environment.
+#!    zigPreferMusl: Prefer musl libc without specifying the target.
 #!    zigDisableWrap: makeWrapper will not be used. Might be useful if distributing outside nix.
 #!    zigWrapperArgs: Additional arguments to makeWrapper.
 #!    zigBuildZon: Path to build.zig.zon file, defaults to build.zig.zon.
@@ -98,29 +96,10 @@ extraPkgs.qoi = pkgs.callPackage ./packages/qoi.nix {};
 #! <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
 package = pkgs.callPackage (pkgs.callPackage ./package.nix { inherit env; });
 
-package = pkgs.callPackage (pkgs.callPackage ./package.nix { inherit env; });
-
 #! Update Mach deps in build.zig.zon
 #! Handly helper if you decide to update mach-flake
 #! This does not update your build.zig.zon2json-lock file
 update-mach-deps = let
-
-update-mach-deps = let
-mach = (env.lib.readBuildZigZon ./templates/engine/build.zig.zon).dependencies.mach;
-core = (env.lib.readBuildZigZon ./templates/core/build.zig.zon).dependencies.mach_core;
-in with pkgs; env.app [ gnused jq zig2nix.outputs.packages.${system}.zon2json ] ''
-replace() {
-  while {
-  read -r url;
-  read -r hash;
-  } do
-  sed -i -e "s;$url;$2;" -e "s;$hash;$3;" build.zig.zon
-  done < <(zon2json build.zig.zon | jq -r ".dependencies.\"$1\" | .url, .hash")
-  }
-replace mach "${mach.url}" "${mach.hash}"
-replace mach_core "${core.url}" "${core.hash}"
-'';
-};
 
 #! --- Architecture dependent flake outputs.
 #!     access: `mach.outputs.thing.${system}`
