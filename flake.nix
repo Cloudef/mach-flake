@@ -8,11 +8,11 @@
       #! Structures.
 
       zig-env = zig2nix.zig-env.${system};
-      _pkgs = (zig-env {}).pkgs;
+      pkgs = (zig-env {}).pkgs;
 
       # Mach nominated Zig versions.
       # <https://machengine.org/about/nominated-zig/>
-      zigv = _pkgs.callPackage ./versions.nix {
+      zigv = pkgs.callPackage ./versions.nix {
         zigSystem = (zig-env {}).lib.zigDoubleFromString system;
         zigHook = (zig-env {}).zig-hook;
       };
@@ -20,8 +20,6 @@
       #: Helper function for building and running Mach projects.
       #: For more options see zig-env from <https://github.com/Cloudef/zig2nix>
       mach-env = {
-        # Overrideable nixpkgs.
-        pkgs ? _pkgs,
         # Zig version to use. Normally there is no need to change this.
         zig ? zigv.mach-latest,
         # Enable Vulkan support.
@@ -34,11 +32,11 @@
         enableWayland ? false,
         # Enable X11 support.
         enableX11 ? true,
-      }: let
-        env = pkgs.callPackage zig-env {
-          inherit pkgs zig;
-          inherit enableVulkan enableOpenGL enableWayland enableX11;
-        };
+        ...
+      } @attrs: let
+        env = pkgs.callPackage zig-env (attrs // {
+          inherit zig enableVulkan enableOpenGL enableWayland enableX11;
+        });
       in (env // {
         #! --- Outputs of mach-env {} function.
         #!     access: (mach-env {}).thing
@@ -83,6 +81,12 @@
         #! <https://github.com/phoboslab/qoi/tree/master>
         extraPkgs.qoi = pkgs.callPackage ./packages/qoi.nix {};
 
+        #: Package for specific target supported by nix.
+        #: You can still compile to other platforms by using package and specifying zigTarget.
+        #: When compiling to non-nix supported targets, you can't rely on pkgsForTarget, but rather have to provide all the pkgs yourself.
+        #: NOTE: Even though target is supported by nix, cross-compiling to it might not be, in that case you should get an error.
+        packageForTarget = target: (env.pkgsForTarget target).callPackage (pkgs.callPackage ./package.nix { inherit env target; });
+
         #! Packages mach project.
         #! NOTE: You must first generate build.zig.zon2json-lock using zon2json-lock.
         #!       It is recommended to commit the build.zig.zon2json-lock to your repo.
@@ -99,7 +103,7 @@
         #!    zigBuildZonLock: Path to build.zig.zon2json-lock file, defaults to build.zig.zon2json-lock.
         #!
         #! <https://github.com/NixOS/nixpkgs/blob/master/doc/hooks/zig.section.md>
-        package = pkgs.callPackage (pkgs.callPackage ./package.nix { inherit env; });
+        package = packageForTarget system;
 
         #! Update Mach deps in build.zig.zon
         #! Handly helper if you decide to update mach-flake
@@ -246,7 +250,15 @@
         '';
 
       # nix run .#update-mach-binaries
-      apps.update-mach-binaries = with env.pkgs; app [ coreutils gnused gnugrep jq ] ''
+      apps.update-mach-binaries = with env.pkgs; let
+        triples = [
+          "aarch64-linux-musl" "x86_64-linux-musl"
+          "aarch64-linux-gnu" "x86_64-linux-gnu"
+          "aarch64-macos-none" "x86_64-macos-none"
+          "x86_64-windows-gnu"
+        ];
+         base-url = "https://github.com/hexops/mach-gpu-dawn/releases/download";
+      in app [ coreutils gnused gnugrep jq ] ''
         tmpdir="$(mktemp -d)"
         trap 'rm -rf "$tmpdir"' EXIT
 
@@ -259,9 +271,13 @@
 
         generate_json() {
           extract_dawn_versions | sort -u | while read -r ver; do
-            curl -sSL "https://github.com/hexops/mach-gpu-dawn/releases/download/$ver/headers.json.gz" -o "$tmpdir/dawn-headers.gz"
-            for triple in aarch64-linux-musl x86_64-linux-musl aarch64-linux-gnu x86_64-linux-gnu aarch64-macos-none x86_64-macos-none; do
-              curl -sSL "https://github.com/hexops/mach-gpu-dawn/releases/download/$ver/libdawn_''${triple}_release-fast.a.gz" -o "$tmpdir/dawn-lib.gz"
+            curl -sSL "${base-url}/$ver/headers.json.gz" -o "$tmpdir/dawn-headers.gz"
+            for triple in ${lib.concatStringsSep " " triples}; do
+              if [[ "$triple" == *-windows-* ]]; then
+                curl -sSL "${base-url}/$ver/dawn_''${triple}_release-fast.lib.gz" -o "$tmpdir/dawn-lib.gz"
+              else
+                curl -sSL "${base-url}/$ver/libdawn_''${triple}_release-fast.a.gz" -o "$tmpdir/dawn-lib.gz"
+              fi
               cat <<EOF
         {
           "dawn-$triple": {
@@ -281,14 +297,16 @@
         '';
 
       # nix run .#test
-      apps.test = app [] ''
+      apps.test = with env.pkgs; app [ file ] ''
         for var in engine core; do
           printf -- 'run .#test (%s)\n' "$var"
           (cd templates/"$var"; nix run --override-input mach ../.. .#test)
           printf -- 'run .#zon2json (%s)\n' "$var"
-          (cd templates/"$var"; nix run --override-input mach ../.. .#zon2json)
+          (cd templates/"$var"; nix run --override-input mach ../.. .#zon2json; printf '\n')
           printf -- 'build . (%s)\n' "$var"
           (cd templates/"$var"; nix build --override-input mach ../.. .)
+          printf -- 'build .#target.x86_64-windows (%s)\n' "$var"
+          (cd templates/"$var"; nix build --override-input mach ../.. .#target.x86_64-windows; file result/bin/myapp*)
           rm -f templates/"$var"/result
           rm -rf templates/"$var"/zig-out
           rm -rf templates/"$var"/zig-cache

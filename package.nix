@@ -1,7 +1,8 @@
-{ env, stdenvNoCC, fetchurl, gzip, jq }:
+{ env, target, fetchurl, gzip, jq }:
 
 {
-   zigTarget ? null
+   stdenvNoCC
+   , zigTarget ? null
    , zigPreferMusl ? false
    , ...
 } @attrs:
@@ -19,9 +20,13 @@ let
 
    dawn-binary = let
       target = "${system.zig.cpu}-${system.zig.versionlessKernel}-${system.zig.abi}";
-      ver = mach-binaries."dawn-${target}".ver;
-      lib = fetchurl {
-         url = "https://github.com/hexops/mach-gpu-dawn/releases/download/${ver}/libdawn_${target}_release-fast.a.gz";
+      ver = mach-binaries."dawn-${target}".ver or (throw "dawn binaries not available for ${target}");
+      lib = let
+         base-url = "https://github.com/hexops/mach-gpu-dawn/releases/download/${ver}";
+      in fetchurl {
+         url =
+            if system.zig.versionlessKernel == "windows" then "${base-url}/dawn_${target}_release-fast.lib.gz"
+            else "${base-url}/libdawn_${target}_release-fast.a.gz";
          hash = mach-binaries."dawn-${target}".lib;
       };
       hdr = fetchurl {
@@ -48,7 +53,7 @@ let
          )
          '';
    };
-in env.package (
+in env.packageForTarget target (
    attrs // {
    # https://github.com/hexops/mach-core/blob/main/build_examples.zig
    NO_ENSURE_SUBMODULES = "true";

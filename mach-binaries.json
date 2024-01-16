@@ -28,5 +28,10 @@
     "ver": "release-f331c1c",
     "lib": "sha256-jfSZqTyVivLA2z1owUQVn93PtDFuS+05fZsvllq//uY=",
     "hdr": "sha256-Z0F+dHrZjG7MnnTPJwmswxX+CEVD1oxgF05dgwRDylI="
+  },
+  "dawn-x86_64-windows-gnu": {
+    "ver": "release-f331c1c",
+    "lib": "sha256-CHjlbmOPvHtLJvswRgUzx3mac/5KQF1mz12NKyRXiSc=",
+    "hdr": "sha256-Z0F+dHrZjG7MnnTPJwmswxX+CEVD1oxgF05dgwRDylI="
   }
 }

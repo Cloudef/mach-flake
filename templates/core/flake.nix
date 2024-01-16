@@ -2,7 +2,7 @@
   description = "mach-core-project flake";
 
   inputs = {
-    mach.url = "github:Cloudef/mach-flake?rev=fda3729ef2b198ee483522d0bf613352e48935d3";
+    mach.url = "github:Cloudef/mach-flake?rev=8d183901dca8079a86779f9e575026f91e35ae66";
   };
 
   outputs = { mach, ... }: let
@@ -12,31 +12,58 @@
       # Check the flake.nix in mach-flake project for more options:
       # <https://github.com/Cloudef/mach-flake/blob/master/flake.nix>
       env = mach.outputs.mach-env.${system} {};
-    in rec {
-      # nix package .
-      packages.default = env.package {
+      doubles = env.pkgs.lib.systems.doubles.all ++ [ "aarch64-ios" ];
+
+      # Map some doubles to become Mach compatible targets
+      resolve-target = double: {
+        # Nix defaults to x86_64-windows-msvc
+        x86_64-windows = "x86_64-windows-gnu";
+      }."${double}" or double;
+    in with builtins; with env.pkgs.lib; rec {
+      # nix build .#target.{nix-target}
+      # e.g. nix build .#target.x86_64-linux
+      packages.target = genAttrs doubles (double: let
+        target = resolve-target double;
+      in env.packageForTarget target ({
         src = ./.;
+
+        nativeBuildInputs = with env.pkgs; [];
+        buildInputs = with env.pkgsForTarget target; [];
+
+        # Smaller binaries and avoids shipping glibc.
+        zigPreferMusl = true;
+
+        # This disables LD_LIBRARY_PATH mangling, binary patching etc...
+        # The package won't be usable inside nix.
+        zigDisableWrap = true;
+
         zigBuildFlags = [ "-Doptimize=ReleaseSmall" ];
+      }));
+
+      # nix build .
+      packages.default = packages.target.${system}.override {
+        # Prefer nix friendly settings.
+        zigPreferMusl = false;
+        zigDisableWrap = false;
       };
 
       # For bundling with nix bundle for running outside of nix
       # example: https://github.com/ralismark/nix-appimage
-      apps.bundle = let
-        pkg = packages.default.override {
-          # This disables LD_LIBRARY_PATH mangling.
-          # vulkan-loader, x11, wayland, etc... won't be included in the bundle.
-          zigDisableWrap = true;
-
-          # Smaller binaries and avoids shipping glibc.
-          zigPreferMusl = true;
-        };
+      apps.bundle.target = genAttrs doubles (double: let
+        pkg = packages.target.${double};
       in {
         type = "app";
         program = "${pkg}/bin/myapp";
-      };
+      });
+
+      # default bundle
+      apps.bundle.default = apps.bundle.target.${system};
 
       # nix run .
       apps.default = env.app [] "zig build run -- \"$@\"";
+
+      # nix run .#build
+      apps.build = env.app [] "zig build \"$@\"";
 
       # nix run .#test
       apps.test = env.app [] "zig build test -- \"$@\"";
