@@ -30,7 +30,7 @@ let
         cp -r lib/* $out/lib
         install -Dm755  zig $out/bin/zig
         install -m644 LICENSE $out/LICENSE
-      '' + lib.optionalString (installDocs) ''
+      '' + optionalString (installDocs) ''
         mkdir -p $out/doc
         if [[ -d docs ]]; then
           cp -r docs $out/doc
@@ -40,13 +40,13 @@ let
       '';
 
       passthru = let
-        machVer = lib.removeSuffix "-mach" k;
+        machVer = removeSuffix "-mach" k;
       in {
         date = v.date;
         notes = v.notes;
         stdDocs = v.stdDocs;
         docs = v.docs;
-        machVersion = if lib.toInt (lib.versions.major machVer) < 2000 then "v${k}" else "main";
+        machVersion = if toInt (versions.major machVer) < 2000 then "v${k}" else "main";
         machDocs = v.machDocs;
         machNominated = v.machNominated;
         size = res.size;
@@ -56,7 +56,7 @@ let
         };
       };
 
-      meta = with lib; {
+      meta = {
         homepage = "https://ziglang.org/";
         description = "General-purpose programming language and toolchain for maintaining robust, optimal, and reusable software";
         license = licenses.mit;
