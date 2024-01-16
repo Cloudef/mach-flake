@@ -128,6 +128,21 @@
       # Default mach env used by this flake
       env = mach-env {};
       app = env.app-bare;
+
+      mach-binary-triples = [
+        "aarch64-linux-musl" "x86_64-linux-musl"
+        "aarch64-linux-gnu" "x86_64-linux-gnu"
+        "aarch64-macos-none" "x86_64-macos-none"
+        "x86_64-windows-gnu"
+      ];
+
+      # nix compatible doubles, macos becomes darwin and so on
+      mach-binary-doubles = with env.lib; with env.pkgs.lib; let
+        # Currently cross-compiling to these is broken
+        # https://github.com/ziglang/zig/issues/18571
+        filtered = [ "aarch64-darwin" "x86_64-darwin" ];
+      in subtractLists filtered (unique (map
+        (t: systems.parse.doubleFromSystem (mkZigSystemFromString t)) mach-binary-triples));
     in rec {
       #! --- Architecture dependent flake outputs.
       #!     access: `mach.outputs.thing.${system}`
@@ -251,13 +266,7 @@
 
       # nix run .#update-mach-binaries
       apps.update-mach-binaries = with env.pkgs; let
-        triples = [
-          "aarch64-linux-musl" "x86_64-linux-musl"
-          "aarch64-linux-gnu" "x86_64-linux-gnu"
-          "aarch64-macos-none" "x86_64-macos-none"
-          "x86_64-windows-gnu"
-        ];
-         base-url = "https://github.com/hexops/mach-gpu-dawn/releases/download";
+        base-url = "https://github.com/hexops/mach-gpu-dawn/releases/download";
       in app [ coreutils gnused gnugrep jq ] ''
         tmpdir="$(mktemp -d)"
         trap 'rm -rf "$tmpdir"' EXIT
@@ -272,7 +281,7 @@
         generate_json() {
           extract_dawn_versions | sort -u | while read -r ver; do
             curl -sSL "${base-url}/$ver/headers.json.gz" -o "$tmpdir/dawn-headers.gz"
-            for triple in ${lib.concatStringsSep " " triples}; do
+            for triple in ${lib.concatStringsSep " " mach-binary-triples}; do
               if [[ "$triple" == *-windows-* ]]; then
                 curl -sSL "${base-url}/$ver/dawn_''${triple}_release-fast.lib.gz" -o "$tmpdir/dawn-lib.gz"
               else
@@ -305,8 +314,12 @@
           (cd templates/"$var"; nix run --override-input mach ../.. .#zon2json; printf '\n')
           printf -- 'build . (%s)\n' "$var"
           (cd templates/"$var"; nix build --override-input mach ../.. .)
-          printf -- 'build .#target.x86_64-windows (%s)\n' "$var"
-          (cd templates/"$var"; nix build --override-input mach ../.. .#target.x86_64-windows; file result/bin/myapp*)
+          if [[ "$var" == engine ]]; then
+            for double in ${lib.concatStringsSep " " mach-binary-doubles}; do
+              printf -- 'build .#target.%s (%s)\n' "$double" "$var"
+              (cd templates/"$var"; nix build --override-input mach ../.. .#target."$double"; file result/bin/myapp*)
+            done
+          fi
           rm -f templates/"$var"/result
           rm -rf templates/"$var"/zig-out
           rm -rf templates/"$var"/zig-cache
