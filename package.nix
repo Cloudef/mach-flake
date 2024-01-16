@@ -9,10 +9,16 @@
 with builtins;
 
 let
-   target = env.lib.resolveTarget zigTarget stdenvNoCC.targetPlatform zigPreferMusl;
+   system = env.lib.resolveTargetSystem {
+      target = zigTarget;
+      platform = stdenvNoCC.targetPlatform;
+      musl = zigPreferMusl;
+   };
+
    mach-binaries = fromJSON (readFile ./mach-binaries.json);
 
    dawn-binary = let
+      target = "${system.zig.cpu}-${system.zig.versionlessKernel}-${system.zig.abi}";
       ver = mach-binaries."dawn-${target}".ver;
       lib = fetchurl {
          url = "https://github.com/hexops/mach-gpu-dawn/releases/download/${ver}/libdawn_${target}_release-fast.a.gz";
