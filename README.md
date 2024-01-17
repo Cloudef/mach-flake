@@ -47,23 +47,23 @@ Below is auto-generated dump of important outputs in this flake.
 ```nix
 #! Structures.
 
-#: Helper function for building and running Mach projects.
-#: For more options see zig-env from <https://github.com/Cloudef/zig2nix>
+#:! Helper function for building and running Mach projects.
+#:! For more options see zig-env from <https://github.com/Cloudef/zig2nix>
 mach-env = {
-  # Zig version to use. Normally there is no need to change this.
-  zig ? zigv.mach-latest,
-  # Enable Vulkan support.
-  enableVulkan ? true,
-  # Enable OpenGL support.
-  enableOpenGL ? true,
-  # Enable Wayland support.
-  # Disabled by default because mach-core example currently panics with:
-  # error(mach): glfw: error.FeatureUnavailable: Wayland: The platform does not provide the window position
-  enableWayland ? false,
-  # Enable X11 support.
-  enableX11 ? true,
-  ...
-};
+ # Zig version to use. Normally there is no need to change this.
+ zig ? zigv.mach-latest,
+ # Enable Vulkan support.
+ enableVulkan ? true,
+ # Enable OpenGL support.
+ enableOpenGL ? true,
+ # Enable Wayland support.
+ # Disabled by default because mach-core example currently panics with:
+ # error(mach): glfw: error.FeatureUnavailable: Wayland: The platform does not provide the window position
+ enableWayland ? false,
+ # Enable X11 support.
+ enableX11 ? true,
+ ...
+}: { ... };
 
 #! --- Outputs of mach-env {} function.
 #!     access: (mach-env {}).thing
@@ -71,6 +71,37 @@ mach-env = {
 #! Autofix tool
 #! https://github.com/ziglang/zig/issues/17584
 autofix = pkgs.writeShellApplication {
+ name = "zig-autofix";
+ runtimeInputs = with pkgs; [ zig gnused gnugrep ];
+ text = ''
+     if [[ ! -d "$1" ]]; then
+       printf 'error: no such directory: %s\n' "$@"
+       exit 1
+     fi
+  
+     cd "$@"
+     has_wontfix=0
+  
+     while {
+         IFS=$':' read -r file line col msg;
+     } do
+       if [[ "$msg" ]]; then
+         case "$msg" in
+           *"local variable is never mutated")
+             printf 'autofix: %s\n' "$file:$line:$col:$msg" 1>&2
+             sed -i "''${line}s/var/const/" "$file"
+             ;;
+           *)
+             printf 'wontfix: %s\n' "$file:$line:$col:$msg" 1>&2
+             has_wontfix=1
+             ;;
+         esac
+       fi
+     done < <(zig build 2>&1 | grep "error:")
+  
+     exit $has_wontfix
+ '';
+};
 
 #! QOI - The “Quite OK Image Format” for fast, lossless image compression
 #! Packages the `qoiconv` binary.
@@ -105,6 +136,21 @@ package = packageForTarget system;
 #! Handy helper if you decide to update mach-flake
 #! This does not update your build.zig.zon2json-lock file
 update-mach-deps = let
+ mach = (env.lib.readBuildZigZon ./templates/engine/build.zig.zon).dependencies.mach;
+ core = (env.lib.readBuildZigZon ./templates/core/build.zig.zon).dependencies.mach_core;
+in with pkgs; env.app [ gnused jq zig2nix.outputs.packages.${system}.zon2json ] ''
+  replace() {
+    while {
+      read -r url;
+      read -r hash;
+    } do
+      sed -i -e "s;$url;$2;" -e "s;$hash;$3;" build.zig.zon
+    done < <(zon2json build.zig.zon | jq -r ".dependencies.\"$1\" | .url, .hash")
+  }
+  replace mach "${mach.url}" "${mach.hash}"
+  replace mach_core "${core.url}" "${core.hash}"
+'';
+});
 
 #! --- Architecture dependent flake outputs.
 #!     access: `mach.outputs.thing.${system}`
@@ -112,13 +158,13 @@ update-mach-deps = let
 #! Helper function for building and running Mach projects.
 inherit mach-env;
 
-#: Expose mach nominated zig versions and extra packages.
-#: <https://machengine.org/about/nominated-zig/>
+#! Expose mach nominated zig versions and extra packages.
+#! <https://machengine.org/about/nominated-zig/>
 packages = {
-  inherit (zig2nix.outputs.packages.${system}) zon2json zon2json-lock zon2nix;
-  inherit (env) autofix;
-  zig = zigv;
-};
+inherit (zig2nix.outputs.packages.${system}) zon2json zon2json-lock zon2nix;
+inherit (env) autofix;
+zig = zigv;
+} // env.extraPkgs;
 
 #! Run a Mach nominated version of a Zig compiler inside a `mach-env`.
 #! nix run#zig."mach-nominated-version"
@@ -142,41 +188,41 @@ devShells.default = devShells.zig.mach-latest;
 #! --- Generic flake outputs.
 #!     access: `mach.outputs.thing`
 
-#: Mach engine project template
-#: nix flake init -t templates#engine
+#! Mach engine project template
+#! nix flake init -t templates#engine
 templates.engine = {
-  path = ./templates/engine;
-  description = "Mach engine project";
-  welcomeText = ''
-  # Mach engine project template
-  - Mach engine: https://machengine.org/engine/
+ path = ./templates/engine;
+ description = "Mach engine project";
+ welcomeText = ''
+   # Mach engine project template
+   - Mach engine: https://machengine.org/engine/
   
-  ## Build & Run
+   ## Build & Run
   
-  ---
-  nix run .
-  ---
+   ---
+   nix run .
+   ---
   
-  See flake.nix for more options.
-  '';
+   See flake.nix for more options.
+ '';
 };
 
-#: Mach core project template
-#: nix flake init -t templates#core
+#! Mach core project template
+#! nix flake init -t templates#core
 templates.core = {
-  path = ./templates/core;
-  description = "Mach core project";
-  welcomeText = ''
-  # Mach core project template
-  - Mach core: https://machengine.org/core/
+ path = ./templates/core;
+ description = "Mach core project";
+ welcomeText = ''
+   # Mach core project template
+   - Mach core: https://machengine.org/core/
   
-  ## Build & Run
+   ## Build & Run
   
-  ---
-  nix run .
-  ---
+   ---
+   nix run .
+   ---
   
-  See flake.nix for more options.
-  '';
+   See flake.nix for more options.
+ '';
 };
 ```

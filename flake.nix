@@ -17,8 +17,8 @@
         zigHook = (zig-env {}).zig-hook;
       };
 
-      #: Helper function for building and running Mach projects.
-      #: For more options see zig-env from <https://github.com/Cloudef/zig2nix>
+      #:! Helper function for building and running Mach projects.
+      #:! For more options see zig-env from <https://github.com/Cloudef/zig2nix>
       mach-env = {
         # Zig version to use. Normally there is no need to change this.
         zig ? zigv.mach-latest,
@@ -150,8 +150,8 @@
       #! Helper function for building and running Mach projects.
       inherit mach-env;
 
-      #: Expose mach nominated zig versions and extra packages.
-      #: <https://machengine.org/about/nominated-zig/>
+      #! Expose mach nominated zig versions and extra packages.
+      #! <https://machengine.org/about/nominated-zig/>
       packages = {
         inherit (zig2nix.outputs.packages.${system}) zon2json zon2json-lock zon2nix;
         inherit (env) autofix;
@@ -400,8 +400,8 @@
       #! --- Generic flake outputs.
       #!     access: `mach.outputs.thing`
 
-      #: Mach engine project template
-      #: nix flake init -t templates#engine
+      #! Mach engine project template
+      #! nix flake init -t templates#engine
       templates.engine = {
         path = ./templates/engine;
         description = "Mach engine project";
@@ -419,8 +419,8 @@
           '';
       };
 
-      #: Mach core project template
-      #: nix flake init -t templates#core
+      #! Mach core project template
+      #! nix flake init -t templates#core
       templates.core = {
         path = ./templates/core;
         description = "Mach core project";
