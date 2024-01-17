@@ -2,7 +2,7 @@
   description = "mach-engine-project flake";
 
   inputs = {
-    mach.url = "github:Cloudef/mach-flake?rev=4a819a267fce1f997c48bb435f20dae9e471c45e";
+    mach.url = "github:Cloudef/mach-flake?rev=5fbe8a31aa66dcf6d99a9ad196343dbab0279baf";
   };
 
   outputs = { mach, ... }: let
@@ -84,6 +84,6 @@
       apps.zon2nix = env.app [env.zon2nix] "zon2nix \"$@\"";
 
       # nix develop
-      devShells.default = env.shell;
+      devShells.default = env.mkShell {};
     }));
 }
