@@ -103,6 +103,7 @@ autofix = pkgs.writeShellApplication {
  '';
 };
 
+
 #! QOI - The “Quite OK Image Format” for fast, lossless image compression
 #! Packages the `qoiconv` binary.
 #! <https://github.com/phoboslab/qoi/tree/master>
@@ -112,7 +113,11 @@ extraPkgs.qoi = pkgs.callPackage ./packages/qoi.nix {};
 #! You can still compile to other platforms by using package and specifying zigTarget.
 #! When compiling to non-nix supported targets, you can't rely on pkgsForTarget, but rather have to provide all the pkgs yourself.
 #! NOTE: Even though target is supported by nix, cross-compiling to it might not be, in that case you should get an error.
-packageForTarget = target: (env.pkgsForTarget target).callPackage (pkgs.callPackage ./package.nix { inherit env target; });
+packageForTarget = target: (env.pkgsForTarget target).callPackage (pkgs.callPackage ./src/package.nix {
+ inherit target;
+ inherit (env) packageForTarget;
+ inherit (env.lib) resolveTargetSystem;
+});
 
 #! Packages mach project.
 #! NOTE: You must first generate build.zig.zon2json-lock using zon2json-lock.
@@ -136,8 +141,8 @@ package = packageForTarget system;
 #! Handy helper if you decide to update mach-flake
 #! This does not update your build.zig.zon2json-lock file
 update-mach-deps = let
- mach = (env.lib.readBuildZigZon ./templates/engine/build.zig.zon).dependencies.mach;
- core = (env.lib.readBuildZigZon ./templates/core/build.zig.zon).dependencies.mach_core;
+ mach = (env.lib.fromZON ./templates/engine/build.zig.zon).dependencies.mach;
+ core = (env.lib.fromZON ./templates/core/build.zig.zon).dependencies.mach_core;
 in with pkgs; env.app [ gnused jq zig2nix.outputs.packages.${system}.zon2json ] ''
   replace() {
     while {
@@ -193,36 +198,18 @@ devShells.default = devShells.zig.mach-latest;
 templates.engine = {
  path = ./templates/engine;
  description = "Mach engine project";
- welcomeText = ''
-   # Mach engine project template
-   - Mach engine: https://machengine.org/engine/
-  
-   ## Build & Run
-  
-   ---
-   nix run .
-   ---
-  
-   See flake.nix for more options.
+ welcomeText = welcome-template description ''
+  - Mach engine: https://machengine.org/engine/
  '';
 };
 
 #! Mach core project template
 #! nix flake init -t templates#core
-templates.core = {
+templates.core = rec {
  path = ./templates/core;
  description = "Mach core project";
- welcomeText = ''
-   # Mach core project template
-   - Mach core: https://machengine.org/core/
-  
-   ## Build & Run
-  
-   ---
-   nix run .
-   ---
-  
-   See flake.nix for more options.
+ welcomeText = welcome-template description ''
+  - Mach core: https://machengine.org/core/
  '';
 };
 ```

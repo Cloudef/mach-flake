@@ -1,4 +1,11 @@
-{ env, target, fetchurl, gzip, jq }:
+{
+   resolveTargetSystem
+   , packageForTarget
+   , target
+   , fetchurl
+   , gzip
+   , jq
+}:
 
 {
    stdenvNoCC
@@ -10,13 +17,13 @@
 with builtins;
 
 let
-   system = env.lib.resolveTargetSystem {
+   system = resolveTargetSystem {
       target = zigTarget;
       platform = stdenvNoCC.targetPlatform;
       musl = zigPreferMusl;
    };
 
-   mach-binaries = fromJSON (readFile ./mach-binaries.json);
+   mach-binaries = fromJSON (readFile ../mach-binaries.json);
 
    dawn-binary = let
       target = "${system.zig.cpu}-${system.zig.versionlessKernel}-${system.zig.abi}";
@@ -53,7 +60,7 @@ let
          )
          '';
    };
-in env.packageForTarget target (
+in packageForTarget target (
    attrs // {
    # https://github.com/hexops/mach-core/blob/main/build_examples.zig
    NO_ENSURE_SUBMODULES = "true";
