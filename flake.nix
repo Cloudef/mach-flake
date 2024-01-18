@@ -85,7 +85,7 @@
         #! You can still compile to other platforms by using package and specifying zigTarget.
         #! When compiling to non-nix supported targets, you can't rely on pkgsForTarget, but rather have to provide all the pkgs yourself.
         #! NOTE: Even though target is supported by nix, cross-compiling to it might not be, in that case you should get an error.
-        packageForTarget = target: (env.pkgsForTarget target).callPackage (pkgs.callPackage ./src/package.nix {
+        packageForTarget = target: (env.crossPkgsForTarget target).callPackage (pkgs.callPackage ./src/package.nix {
           inherit target;
           inherit (env) packageForTarget;
           inherit (env.lib) resolveTargetSystem;
