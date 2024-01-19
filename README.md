@@ -183,7 +183,7 @@ apps.default = apps.zig.mach-latest;
 #! Develop shell for building and running Mach projects.
 #! nix develop#zig."mach-nominated-version"
 #! example: nix develop#zig.mach-latest
-devShells.zig = mapAttrs (k: v: (mach-env {zig = v;}).shell) zigv;
+devShells.zig = mapAttrs (k: v: (mach-env {zig = v;}).mkShell {}) zigv;
 
 #! Develop shell for building and running Mach projects.
 #! Uses `mach-latest` nominated Zig version.
