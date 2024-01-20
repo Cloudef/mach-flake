@@ -35,6 +35,11 @@ jobs:
           file-path: templates/**
           commit-msg: Update templates
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  update-flakes:
+    needs: automation
+    runs-on: ubuntu-latest
+    steps:
       - run: nix run .#mach.update-flakes
       - uses: test-room-7/action-update-file@v1.8.0
         with:
