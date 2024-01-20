@@ -2,7 +2,7 @@
   description = "mach-engine-project flake";
 
   inputs = {
-    mach.url = "github:Cloudef/mach-flake?rev=e1dc182b3045e23b5502e3b464c616ce728ed08c";
+    mach.url = "github:Cloudef/mach-flake?rev=011203271fb435db11c2871d9bc77aa9db3131ae";
   };
 
   outputs = { mach, ... }: let
@@ -31,7 +31,8 @@
         buildInputs = with env.pkgsForTarget target; [];
 
         # Smaller binaries and avoids shipping glibc.
-        zigPreferMusl = true;
+        # XXX: Disabled for now due to builds failing.
+        zigPreferMusl = false;
 
         # This disables LD_LIBRARY_PATH mangling, binary patching etc...
         # The package won't be usable inside nix.
