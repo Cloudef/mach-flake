@@ -31,7 +31,8 @@
         buildInputs = with env.pkgsForTarget target; [];
 
         # Smaller binaries and avoids shipping glibc.
-        zigPreferMusl = true;
+        # XXX: Disabled for now due to builds failing.
+        zigPreferMusl = false;
 
         # This disables LD_LIBRARY_PATH mangling, binary patching etc...
         # The package won't be usable inside nix.

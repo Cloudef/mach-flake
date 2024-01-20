@@ -59,11 +59,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1705660068,
-        "narHash": "sha256-OImGGM37oGfRXVz6HZiuV37qnfUgHYyPRG6Z1o8H6CE=",
+        "lastModified": 1705730687,
+        "narHash": "sha256-G9tQJJAed53JBQKQw3WZ9xbLL73xFujXKfbe881/jQE=",
         "owner": "Cloudef",
         "repo": "zig2nix",
-        "rev": "3a5c03047ccc1c9c2323cc4549f2c1fbe65a3a92",
+        "rev": "b5a562ee1c83d0c180e3255c86f13e2d21312881",
         "type": "github"
       },
       "original": {
