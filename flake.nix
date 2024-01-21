@@ -139,14 +139,6 @@
         "aarch64-macos-none" "x86_64-macos-none"
         "x86_64-windows-gnu"
       ];
-
-      # nix compatible doubles, macos becomes darwin and so on
-      mach-binary-doubles = with env.lib; with env.pkgs.lib; let
-        # Currently cross-compiling to these is broken
-        # https://github.com/ziglang/zig/issues/18571
-        filtered = [ "aarch64-darwin" "x86_64-darwin" ];
-      in subtractLists filtered (unique (map
-        (t: systems.parse.doubleFromSystem (mkZigSystemFromString t)) mach-binary-triples));
     in rec {
       #! --- Architecture dependent flake outputs.
       #!     access: `mach.outputs.thing.${system}`
@@ -188,7 +180,7 @@
       };
 
       apps.test = env.pkgs.callPackage src/test.nix {
-        inherit app mach-binary-doubles;
+        inherit app mach-binary-triples;
       };
 
       # nix run .#readme

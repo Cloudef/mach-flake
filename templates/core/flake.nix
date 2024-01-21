@@ -12,19 +12,11 @@
       # Check the flake.nix in mach-flake project for more options:
       # <https://github.com/Cloudef/mach-flake/blob/master/flake.nix>
       env = mach.outputs.mach-env.${system} {};
-      doubles = env.pkgs.lib.systems.doubles.all ++ [ "aarch64-ios" ];
-
-      # Map some doubles to become Mach compatible targets
-      resolve-target = double: {
-        # Nix defaults to x86_64-windows-msvc
-        x86_64-windows = "x86_64-windows-gnu";
-      }."${double}" or double;
-    in with builtins; with env.pkgs.lib; rec {
-      # nix build .#target.{nix-target}
-      # e.g. nix build .#target.x86_64-linux
-      packages.target = genAttrs doubles (double: let
-        target = resolve-target double;
-      in env.packageForTarget target ({
+      system-triple = env.lib.zigTripleFromString system;
+    in with builtins; with env.lib; with env.pkgs.lib; rec {
+      # nix build .#target.{zig-target}
+      # e.g. nix build .#target.x86_64-linux-gnu
+      packages.target = genAttrs allNixZigTriples (target: env.packageForTarget target ({
         src = ./.;
 
         nativeBuildInputs = with env.pkgs; [];
@@ -42,7 +34,7 @@
       }));
 
       # nix build .
-      packages.default = packages.target.${system}.override {
+      packages.default = packages.target.${system-triple}.override {
         # Prefer nix friendly settings.
         zigPreferMusl = false;
         zigDisableWrap = false;
@@ -50,15 +42,15 @@
 
       # For bundling with nix bundle for running outside of nix
       # example: https://github.com/ralismark/nix-appimage
-      apps.bundle.target = genAttrs doubles (double: let
-        pkg = packages.target.${double};
+      apps.bundle.target = genAttrs allNixZigTriples (target: let
+        pkg = packages.target.${target};
       in {
         type = "app";
         program = "${pkg}/bin/myapp";
       });
 
       # default bundle
-      apps.bundle.default = apps.bundle.target.${system};
+      apps.bundle.default = apps.bundle.target.${system-triple};
 
       # nix run .
       apps.default = env.app [] "zig build run -- \"$@\"";
@@ -74,6 +66,9 @@
 
       # nix run .#update-mach-deps
       apps.update-mach-deps = env.update-mach-deps;
+
+      # nix run .#deps
+      apps.deps = env.showExternalDeps;
 
       # nix run .#zon2json
       apps.zon2json = env.app [env.zon2json] "zon2json \"$@\"";

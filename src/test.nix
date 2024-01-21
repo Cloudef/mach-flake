@@ -1,14 +1,19 @@
 {
   lib
   , app
-  , mach-binary-doubles
+  , mach-binary-triples
   , file
 }:
 
 with builtins;
 with lib;
 
-{
+let
+  # These targets are ignored for now as there is zig bug when cross-compiling
+  # https://github.com/ziglang/zig/issues/18571
+  ignored = [ "aarch64-macos-none" "x86_64-macos-none" ];
+  working-triples = subtractLists ignored mach-binary-triples;
+in {
   # nix run .#test.all
   all = app [ file ] ''
     for var in engine core; do
@@ -21,9 +26,9 @@ with lib;
       printf -- 'build . (%s)\n' "$var"
       (cd templates/"$var"; nix build --override-input mach ../.. .)
       if [[ "$var" == engine ]]; then
-        for double in ${concatStringsSep " " mach-binary-doubles}; do
-          printf -- 'build .#target.%s (%s)\n' "$double" "$var"
-          (cd templates/"$var"; nix build --override-input mach ../.. .#target."$double"; file result/bin/myapp*)
+        for triple in ${escapeShellArgs working-triples}; do
+          printf -- 'build .#target.%s (%s)\n' "$triple" "$var"
+          (cd templates/"$var"; nix build --override-input mach ../.. .#target."$triple"; file result/bin/myapp*)
         done
       fi
       rm -f templates/"$var"/result
