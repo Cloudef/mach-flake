@@ -40,6 +40,9 @@ jobs:
     needs: automation
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
       - run: nix run .#mach.update-flakes
       - uses: test-room-7/action-update-file@v1.8.0
         with:
