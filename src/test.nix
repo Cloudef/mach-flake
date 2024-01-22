@@ -11,7 +11,7 @@ with lib;
 let
   # These targets are ignored for now as there is zig bug when cross-compiling
   # https://github.com/ziglang/zig/issues/18571
-  ignored = [ "aarch64-macos-none" "x86_64-macos-none" ];
+  ignored = [ "aarch64-macos-none" "x86_64-macos-none" "x86_64-linux-musl" "aarch64-linux-musl" ];
   working-triples = subtractLists ignored mach-binary-triples;
 in {
   # nix run .#test.all
