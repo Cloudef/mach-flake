@@ -1,6 +1,6 @@
 {
   lib
-  , app
+  , test-app
   , mach-binary-triples
   , zon2json
   , file
@@ -18,14 +18,14 @@ with lib;
 
 {
   # nix run .#mach.update-zig-versions
-  update-zig-versions = app [ curl jq ] ''
+  update-zig-versions = test-app [ curl jq ] ''
     curl -sSL https://machengine.org/zig/index.json | jq 'with_entries(select(.key|(startswith("mach-") or endswith("-mach"))))'
     '';
 
   # nix run .#mach.update-binaries
   update-binaries = let
     base-url = "https://github.com/hexops/mach-gpu-dawn/releases/download";
-  in app [ coreutils gnused gnugrep jq ] ''
+  in test-app [ coreutils gnused gnugrep jq ] ''
     tmpdir="$(mktemp -d)"
     trap 'rm -rf "$tmpdir"' EXIT
 
@@ -64,7 +64,7 @@ with lib;
     '';
 
   # nix run .#mach.update-flakes
-  update-flakes = app [ git gnused ] ''
+  update-flakes = test-app [ git gnused ] ''
     if [[ "''${1-}" != "force" ]] && [[ "$(git log --format=%B -n 1 HEAD)" == "Update templates rev" ]]; then
       echo "Template revisions are up-to-date"
       exit 0
@@ -76,7 +76,7 @@ with lib;
     '';
 
   # nix run .#mach.update
-  update = app [ coreutils gnused git zig jq zon2json ] ''
+  update = test-app [ coreutils gnused git zig jq zon2json ] ''
     tmpdir="$(mktemp -d)"
     trap 'rm -rf "$tmpdir"' EXIT
 

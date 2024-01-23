@@ -2,7 +2,7 @@
   description = "mach-core-project flake";
 
   inputs = {
-    mach.url = "github:Cloudef/mach-flake?rev=89bbfd65dcdb20e31edaaee9fe132282c27c5c3a";
+    mach.url = "github:Cloudef/mach-flake?rev=3872b7a111f16dcc00364ad05c7fa2410accca23";
   };
 
   outputs = { mach, ... }: let
@@ -64,8 +64,8 @@
       # nix run .#docs
       apps.docs = env.app [] "zig build docs -- \"$@\"";
 
-      # nix run .#update-mach-deps
-      apps.update-mach-deps = env.update-mach-deps;
+      # nix run .#updateMachDeps
+      apps.updateMachDeps = env.updateMachDeps;
 
       # nix run .#deps
       apps.deps = env.showExternalDeps;

@@ -64,8 +64,8 @@
       # nix run .#docs
       apps.docs = env.app [] "zig build docs -- \"$@\"";
 
-      # nix run .#update-mach-deps
-      apps.update-mach-deps = env.update-mach-deps;
+      # nix run .#updateMachDeps
+      apps.updateMachDeps = env.updateMachDeps;
 
       # nix run .#deps
       apps.deps = env.showExternalDeps;

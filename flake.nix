@@ -15,13 +15,54 @@
       zigv = pkgs.callPackage ./versions.nix {
         zigSystem = (zig-env {}).lib.zigDoubleFromString system;
         zigHook = (zig-env {}).zig-hook;
+        zigNix = "${zig2nix}/zig.nix";
+      };
+
+      #! QOI - The “Quite OK Image Format” for fast, lossless image compression
+      #! Packages the `qoiconv` binary.
+      #! <https://github.com/phoboslab/qoi/tree/master>
+      extraPkgs.qoi = pkgs.callPackage ./packages/qoi.nix {};
+
+      #! Autofix tool
+      #! https://github.com/ziglang/zig/issues/17584
+      autofix = pkgs.writeShellApplication {
+        name = "zig-autofix";
+        runtimeInputs = with pkgs; [ zigv.mach-latest.bin gnused gnugrep ];
+        text = ''
+          if [[ ! -d "$1" ]]; then
+            printf 'error: no such directory: %s\n' "$@"
+            exit 1
+          fi
+
+          cd "$@"
+          has_wontfix=0
+
+          while {
+              IFS=$':' read -r file line col msg;
+          } do
+            if [[ "$msg" ]]; then
+              case "$msg" in
+                *"local variable is never mutated")
+                  printf 'autofix: %s\n' "$file:$line:$col:$msg" 1>&2
+                  sed -i "''${line}s/var/const/" "$file"
+                  ;;
+                *)
+                  printf 'wontfix: %s\n' "$file:$line:$col:$msg" 1>&2
+                  has_wontfix=1
+                  ;;
+              esac
+            fi
+          done < <(zig build 2>&1 | grep "error:")
+
+          exit $has_wontfix
+          '';
       };
 
       #:! Helper function for building and running Mach projects.
       #:! For more options see zig-env from <https://github.com/Cloudef/zig2nix>
       mach-env = {
         # Zig version to use. Normally there is no need to change this.
-        zig ? zigv.mach-latest,
+        zig ? zigv.mach-latest.bin,
         # Enable Vulkan support.
         enableVulkan ? true,
         # Enable OpenGL support.
@@ -41,45 +82,8 @@
         #! --- Outputs of mach-env {} function.
         #!     access: (mach-env {}).thing
 
-        #! Autofix tool
-        #! https://github.com/ziglang/zig/issues/17584
-        autofix = pkgs.writeShellApplication {
-          name = "zig-autofix";
-          runtimeInputs = with pkgs; [ zig gnused gnugrep ];
-          text = ''
-            if [[ ! -d "$1" ]]; then
-              printf 'error: no such directory: %s\n' "$@"
-              exit 1
-            fi
-
-            cd "$@"
-            has_wontfix=0
-
-            while {
-                IFS=$':' read -r file line col msg;
-            } do
-              if [[ "$msg" ]]; then
-                case "$msg" in
-                  *"local variable is never mutated")
-                    printf 'autofix: %s\n' "$file:$line:$col:$msg" 1>&2
-                    sed -i "''${line}s/var/const/" "$file"
-                    ;;
-                  *)
-                    printf 'wontfix: %s\n' "$file:$line:$col:$msg" 1>&2
-                    has_wontfix=1
-                    ;;
-                esac
-              fi
-            done < <(zig build 2>&1 | grep "error:")
-
-            exit $has_wontfix
-            '';
-        };
-
-        #! QOI - The “Quite OK Image Format” for fast, lossless image compression
-        #! Packages the `qoiconv` binary.
-        #! <https://github.com/phoboslab/qoi/tree/master>
-        extraPkgs.qoi = pkgs.callPackage ./packages/qoi.nix {};
+        #! Inherit extraPkgs and autofix
+        inherit extraPkgs autofix;
 
         #! Package for specific target supported by nix.
         #! You can still compile to other platforms by using package and specifying zigTarget.
@@ -112,7 +116,7 @@
         #! Update Mach deps in build.zig.zon
         #! Handy helper if you decide to update mach-flake
         #! This does not update your build.zig.zon2json-lock file
-        update-mach-deps = let
+        updateMachDeps = let
           mach = (env.lib.fromZON ./templates/engine/build.zig.zon).dependencies.mach;
           core = (env.lib.fromZON ./templates/core/build.zig.zon).dependencies.mach_core;
         in with pkgs; env.app [ gnused jq zig2nix.outputs.packages.${system}.zon2json ] ''
@@ -129,9 +133,9 @@
           '';
       });
 
-      # Default mach env used by this flake
-      env = mach-env {};
-      app = env.app-bare;
+      # Default mach env used for tests and automation
+      test-env = mach-env {};
+      test-app = test-env.app-bare;
 
       mach-binary-triples = [
         "aarch64-linux-musl" "x86_64-linux-musl"
@@ -150,43 +154,67 @@
       #! <https://machengine.org/about/nominated-zig/>
       packages = {
         inherit (zig2nix.outputs.packages.${system}) zon2json zon2json-lock zon2nix;
-        inherit (env) autofix;
+        inherit autofix;
         zig = zigv;
-      } // env.extraPkgs;
+      } // extraPkgs;
 
-      #! Run a Mach nominated version of a Zig compiler inside a `mach-env`.
-      #! nix run#zig."mach-nominated-version"
-      #! example: nix run#zig.mach-latest
-      apps.zig = mapAttrs (k: v: (mach-env {zig = v;}).app-no-root [] ''zig "$@"'') zigv;
+      # Generates flake apps for all the zig versions.
+      apps.env = mapAttrs (k: v: let
+          apps-for = zig: let
+            env = mach-env { inherit zig; };
+          in {
+            #! Run a mach nominated version of a Zig compiler
+            #! nix run .#env."mach-zig-version"."build".zig
+            #! example: nix run .#env.mach-latest.bin.zig
+            #! example: nix run .#env.mach-latest.src.zig
+            zig = env.app-no-root [] ''zig "$@"'';
 
-      #! Run a latest Mach nominated version of a Zig compiler inside a `mach-env`.
-      #! nix run
-      apps.default = apps.zig.mach-latest;
+            #! Print external dependencies of zig project
+            #! nix run .#env."mach-zig-version"."build".showExternalDeps
+            #! example: nix run .#env.mach-latest.bin.showExternalDeps
+            #! example: nix run .#env.mach-latest.src.showExternalDeps
+            inherit (env) showExternalDeps updateMachDeps;
+          };
+        in {
+          bin = apps-for v.bin;
+          src = apps-for v.src;
+        }
+      ) zigv;
 
-      #! Develop shell for building and running Mach projects.
-      #! nix develop#zig."mach-nominated-version"
-      #! example: nix develop#zig.mach-latest
-      devShells.zig = mapAttrs (k: v: (mach-env {zig = v;}).mkShell {}) zigv;
+      #! Default zig (mach-latest)
+      apps.default = apps.env.mach-latest.bin.zig;
 
-      #! Develop shell for building and running Mach projects.
-      #! Uses `mach-latest` nominated Zig version.
-      #! nix develop
-      devShells.default = devShells.zig.mach-latest;
+      # Develop shell for building and running Mach projects.
+      # nix develop .#env."mach-zig-version"."build"
+      # example: nix develop .#env.mach-latest.bin
+      # example: nix develop .#env.mach-latest.src
+      devShells.env = mapAttrs (k: v: let
+          shells-for = zig: let
+            env = mach-env { inherit zig; };
+          in env.mkShell {};
+        in {
+          bin = shells-for v.bin;
+          src = shells-for v.src;
+        }
+      ) zigv;
 
-      apps.mach = env.pkgs.callPackage src/mach.nix {
-        inherit app mach-binary-triples;
+      #! Develop dev shell
+      devShells.default = devShells.env.mach-latest.bin;
+
+      apps.mach = pkgs.callPackage src/mach.nix {
+        inherit test-app mach-binary-triples;
         inherit (packages) zon2json;
-        inherit (env) zig;
+        inherit (test-env) zig;
       };
 
-      apps.test = env.pkgs.callPackage src/test.nix {
-        inherit app mach-binary-triples;
+      apps.test = pkgs.callPackage src/test.nix {
+        inherit test-app mach-binary-triples;
       };
 
       # nix run .#readme
       apps.readme = let
         project = "Mach Engine Flake";
-      in with env.pkgs; app [ gawk gnused packages.zon2json jq ] (replaceStrings ["`"] ["\\`"] ''
+      in with pkgs; test-app [ gawk gnused packages.zon2json jq ] (replaceStrings ["`"] ["\\`"] ''
       zonrev() {
         zon2json templates/"$1"/build.zig.zon | jq -e --arg k "$2" -r '.dependencies."\($k)".url' |\
           sed 's,^.*/\([0-9a-f]*\).*,\1,'
@@ -202,11 +230,11 @@
 
       [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-      * Mach Zig: `${env.zig.version} @ ${env.zig.machNominated}`
+      * Mach Zig: `${zigv.mach-latest.bin.version} @ ${zigv.mach-latest.machNominated}`
       * Mach Engine: `$(zonrev engine mach)`
       * Mach Core: `$(zonrev core mach_core)`
 
-      ## Mach Engine
+      ### Mach Engine
 
       ```bash
       nix flake init -t github:Cloudef/mach-flake#engine
@@ -214,7 +242,7 @@
       # for more options check the flake.nix file
       ```
 
-      ## Mach Core
+      ### Mach Core
 
       ```bash
       nix flake init -t github:Cloudef/mach-flake#core
@@ -222,15 +250,25 @@
       # for more options check the flake.nix file
       ```
 
-      ## Using Mach nominated Zig directly
+      ### Using Mach nominated Zig directly
 
       ```bash
-      nix run github:Cloudef/mach-flake#zig.mach-latest -- version
+      nix run github:Cloudef/mach-flake#zig.mach-latest.bin -- version
+      ```
+
+      ### Using Mach nominated Zig inside a Mach compatible development environment
+
+      ```bash
+      nix run github:Cloudef/mach-flake#env.mach-latest.bin.zig -- version
+      # or simply (alias to mach-latest)
+      nix run github:Cloudef/mach-flake -- version
       ```
 
       ## Shell for building and running a Mach project
 
       ```bash
+      nix develop github:Cloudef/mach-flake#env.mach-latest.bin
+      # or simply (alias to mach-latest)
       nix develop github:Cloudef/mach-flake
       ```
 
