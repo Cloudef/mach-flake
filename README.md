@@ -34,19 +34,15 @@ nix run .
 nix run github:Cloudef/mach-flake#zig.mach-latest.bin -- version
 ```
 
-### Using Mach nominated Zig inside a Mach compatible development environment
+### Using Zig from a Mach compatible development environment
 
 ```bash
-nix run github:Cloudef/mach-flake#env.mach-latest.bin.zig -- version
-# or simply (alias to mach-latest)
 nix run github:Cloudef/mach-flake -- version
 ```
 
 ## Shell for building and running a Mach project
 
 ```bash
-nix develop github:Cloudef/mach-flake#env.mach-latest.bin
-# or simply (alias to mach-latest)
 nix develop github:Cloudef/mach-flake
 ```
 
@@ -112,6 +108,8 @@ mach-env = {
  enableWayland ? false,
  # Enable X11 support.
  enableX11 ? true,
+ # Enable Alsa support.
+ enableAlsa ? true,
  ...
 }: { ... };
 
