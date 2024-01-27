@@ -24,11 +24,11 @@ in {
       printf -- 'run .#updateMachDeps (%s)\n' "$var"
       (cd templates/"$var"; nix run --override-input mach ../.. .#updateMachDeps; printf '\n')
       printf -- 'build . (%s)\n' "$var"
-      (cd templates/"$var"; nix build --override-input mach ../.. .)
+      (cd templates/"$var"; nix build -L --override-input mach ../.. .)
       if [[ "$var" == engine ]]; then
         for triple in ${escapeShellArgs working-triples}; do
           printf -- 'build .#target.%s (%s)\n' "$triple" "$var"
-          (cd templates/"$var"; nix build --override-input mach ../.. .#target."$triple"; file result/bin/myapp*)
+          (cd templates/"$var"; nix build -L --override-input mach ../.. .#target."$triple"; file result/bin/myapp*)
         done
       fi
       rm -f templates/"$var"/result
