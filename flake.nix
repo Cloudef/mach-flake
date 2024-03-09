@@ -299,7 +299,7 @@
 
     #! Mach engine project template
     #! nix flake init -t templates#engine
-    templates.engine = {
+    templates.engine = rec {
       path = ./templates/engine;
       description = "Mach engine project";
       welcomeText = welcome-template description ''
