@@ -120,7 +120,6 @@
         #! This does not update your build.zig.zon2json-lock file
         updateMachDeps = let
           mach = (env.lib.fromZON ./templates/engine/build.zig.zon).dependencies.mach;
-          core = (env.lib.fromZON ./templates/core/build.zig.zon).dependencies.mach_core;
         in with pkgs; env.app [ gnused jq zig2nix.outputs.packages.${system}.zon2json ] ''
           replace() {
             while {
@@ -131,7 +130,6 @@
             done < <(zon2json build.zig.zon | jq -r ".dependencies.\"$1\" | .url, .hash")
           }
           replace mach "${mach.url}" "${mach.hash}"
-          replace mach_core "${core.url}" "${core.hash}"
           '';
       });
 
@@ -234,7 +232,6 @@
 
       * Mach Zig: `${zigv.mach-latest.bin.version} @ ${zigv.mach-latest.machNominated}`
       * Mach Engine: `$(zonrev engine mach)`
-      * Mach Core: `$(zonrev core mach_core)`
 
       ### Mach Engine
 

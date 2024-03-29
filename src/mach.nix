@@ -115,14 +115,13 @@ with lib;
       mach_update=1
     fi
 
-    read -r rev _ < <(git ls-remote https://github.com/hexops/mach-core.git HEAD)
-    old_url="$(zon2json templates/core/build.zig.zon | jq -er '.dependencies.mach_core.url')"
-    if [[ "$old_url" != "https://pkg.machengine.org/mach-core/$rev.tar.gz" ]]; then
+    old_url="$(zon2json templates/core/build.zig.zon | jq -er '.dependencies.mach.url')"
+    if [[ "$old_url" != "https://pkg.machengine.org/mach/$rev.tar.gz" ]]; then
       cp templates/core/build.zig.zon2json-lock "$tmpdir/core-lock"
       rm -rf templates/core
       git clone https://github.com/hexops/mach-core-starter-project.git templates/core
       rm -rf templates/core/.git
-      generate mach-core-project mach-core "$rev" > templates/core/build.zig.zon
+      generate mach-core-project mach "$rev" > templates/core/build.zig.zon
       mv "$tmpdir/core-lock" templates/core/build.zig.zon2json-lock
       git add templates/core/build.zig.zon2json-lock
       mach_update=1

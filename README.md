@@ -8,9 +8,8 @@ https://machengine.org/
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-* Mach Zig: `0.12.0-dev.2063+804cee3b9 @ 2024-01-07`
-* Mach Engine: `d4cd79440ea16bf59156cd57707e5833acb8e1b5`
-* Mach Core: `6a62bcc90e0d072d632788a6575d77942bd09a19`
+* Mach Zig: `0.12.0-dev.3180+83e578a18 @ 2024-03-08`
+* Mach Engine: `279290bbf2f1adab0af00323280a07d6bfff47a5`
 
 ### Mach Engine
 
@@ -152,7 +151,6 @@ package = packageForTarget system;
 #! This does not update your build.zig.zon2json-lock file
 updateMachDeps = let
  mach = (env.lib.fromZON ./templates/engine/build.zig.zon).dependencies.mach;
- core = (env.lib.fromZON ./templates/core/build.zig.zon).dependencies.mach_core;
 in with pkgs; env.app [ gnused jq zig2nix.outputs.packages.${system}.zon2json ] ''
   replace() {
     while {
@@ -163,7 +161,6 @@ in with pkgs; env.app [ gnused jq zig2nix.outputs.packages.${system}.zon2json ] 
     done < <(zon2json build.zig.zon | jq -r ".dependencies.\"$1\" | .url, .hash")
   }
   replace mach "${mach.url}" "${mach.hash}"
-  replace mach_core "${core.url}" "${core.hash}"
 '';
 });
 
@@ -204,7 +201,7 @@ devShells.default = devShells.env.mach-latest.bin;
 
 #! Mach engine project template
 #! nix flake init -t templates#engine
-templates.engine = {
+templates.engine = rec {
  path = ./templates/engine;
  description = "Mach engine project";
  welcomeText = welcome-template description ''

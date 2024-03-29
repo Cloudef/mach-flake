@@ -1,37 +1,37 @@
 {
   "dawn-aarch64-linux-musl": {
-    "ver": "release-1cce80c",
-    "lib": "sha256-t/gSbY3pueQCTmhPKUEPkKJvsxWn5aSQ7g2CVWbAa6w=",
-    "hdr": "sha256-L7fycrq7O8g7kuck0Z+6zc0Ali55eoeuqO8zchxKIpU="
+    "ver": "release-cdd4a1a",
+    "lib": "sha256-sh9kavZ+addMLwRWywG5FyF2YwUGNyxuIEqhkNm5YGE=",
+    "hdr": "sha256-UvwUrUi9QD7t2u0pWeMCGsp5lsh10PIOtg9e17f8u8U="
   },
   "dawn-x86_64-linux-musl": {
-    "ver": "release-1cce80c",
-    "lib": "sha256-mlYq1vtxWRZF7GGophdBebEJbI9kAnd6Azpoo22KOVA=",
-    "hdr": "sha256-L7fycrq7O8g7kuck0Z+6zc0Ali55eoeuqO8zchxKIpU="
+    "ver": "release-cdd4a1a",
+    "lib": "sha256-60sGX1w88GHtEGBFj3NaAQvHvesjuR1smMDIv6AW1wQ=",
+    "hdr": "sha256-UvwUrUi9QD7t2u0pWeMCGsp5lsh10PIOtg9e17f8u8U="
   },
   "dawn-aarch64-linux-gnu": {
-    "ver": "release-1cce80c",
-    "lib": "sha256-GmlzKEv2qUswmMDgLrs+XblbxB9JPN3WM5rIAZ7bhCo=",
-    "hdr": "sha256-L7fycrq7O8g7kuck0Z+6zc0Ali55eoeuqO8zchxKIpU="
+    "ver": "release-cdd4a1a",
+    "lib": "sha256-M8YzrYbCpo1+tSvLNnaGr3doSWISQeqEZLkGr04+1x0=",
+    "hdr": "sha256-UvwUrUi9QD7t2u0pWeMCGsp5lsh10PIOtg9e17f8u8U="
   },
   "dawn-x86_64-linux-gnu": {
-    "ver": "release-1cce80c",
-    "lib": "sha256-ycQgU6E05VJw+DD8rKDuhuZW3dp4DSEcFTI+rUkQdnk=",
-    "hdr": "sha256-L7fycrq7O8g7kuck0Z+6zc0Ali55eoeuqO8zchxKIpU="
+    "ver": "release-cdd4a1a",
+    "lib": "sha256-I8RPCz0aJ8NUCBuRBZ3Z/w+HyeIrq3Kf8TGJALYaKVk=",
+    "hdr": "sha256-UvwUrUi9QD7t2u0pWeMCGsp5lsh10PIOtg9e17f8u8U="
   },
   "dawn-aarch64-macos-none": {
-    "ver": "release-1cce80c",
-    "lib": "sha256-Mfj5sjG3jUgraQBrvtT1/LUOz1ir4tFsQAcKNsyFcOw=",
-    "hdr": "sha256-L7fycrq7O8g7kuck0Z+6zc0Ali55eoeuqO8zchxKIpU="
+    "ver": "release-cdd4a1a",
+    "lib": "sha256-da4bCgS0XbqxZFpmQ8rQXJOYYmsoCIhXpVo0b4ODtVc=",
+    "hdr": "sha256-UvwUrUi9QD7t2u0pWeMCGsp5lsh10PIOtg9e17f8u8U="
   },
   "dawn-x86_64-macos-none": {
-    "ver": "release-1cce80c",
-    "lib": "sha256-mCAndFcElLDQrMPv+3AonYdaNdXWhI5+L59b+bS/LcQ=",
-    "hdr": "sha256-L7fycrq7O8g7kuck0Z+6zc0Ali55eoeuqO8zchxKIpU="
+    "ver": "release-cdd4a1a",
+    "lib": "sha256-BGVrVERZHCibdrepA/2RBBOd9S1lwOrGNRFAPYQz2k8=",
+    "hdr": "sha256-UvwUrUi9QD7t2u0pWeMCGsp5lsh10PIOtg9e17f8u8U="
   },
   "dawn-x86_64-windows-gnu": {
-    "ver": "release-1cce80c",
-    "lib": "sha256-FLAjOAY0IsVgNulflg5g2Hq1zi5yry9Zp6wiYSqh//o=",
-    "hdr": "sha256-L7fycrq7O8g7kuck0Z+6zc0Ali55eoeuqO8zchxKIpU="
+    "ver": "release-cdd4a1a",
+    "lib": "sha256-MvRsf3+wNZUUsP3WZaSV1D/1K5lHu5RBTM1dqjsKgXw=",
+    "hdr": "sha256-UvwUrUi9QD7t2u0pWeMCGsp5lsh10PIOtg9e17f8u8U="
   }
 }
