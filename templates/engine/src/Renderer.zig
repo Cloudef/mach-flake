@@ -1,3 +1,5 @@
+// TODO(important): docs
+// TODO(important): review all code in this file in-depth
 const std = @import("std");
 
 const mach = @import("mach");
@@ -20,23 +22,28 @@ uniform_buffer: *gpu.Buffer,
 pub const name = .renderer;
 pub const Mod = mach.Mod(@This());
 
-pub const components = struct {
-    pub const location = Vec3;
-    pub const rotation = Vec3;
-    pub const scale = f32;
+pub const components = .{
+    .position = .{ .type = Vec3 },
+    .rotation = .{ .type = Vec3 },
+    .scale = .{ .type = f32 },
 };
 
-// TODO: this shouldn't be a packed struct, it should be extern.
-const UniformBufferObject = packed struct {
-    offset: Vec3.Vector,
+pub const global_events = .{
+    .init = .{ .handler = init },
+    .deinit = .{ .handler = deinit },
+    .tick = .{ .handler = tick },
+};
+
+const UniformBufferObject = extern struct {
+    offset: Vec3,
     scale: f32,
 };
 
-pub fn init(
+fn init(
     engine: *mach.Engine.Mod,
     renderer: *Mod,
 ) !void {
-    const device = engine.state.device;
+    const device = engine.state().device;
     const shader_module = device.createShaderModuleWGSL("shader.wgsl", @embedFile("shader.wgsl"));
 
     // Fragment state
@@ -88,29 +95,29 @@ pub fn init(
         },
     };
 
-    renderer.state = .{
+    renderer.init(.{
         .pipeline = device.createRenderPipeline(&pipeline_descriptor),
         .queue = device.getQueue(),
         .bind_groups = bind_groups,
         .uniform_buffer = uniform_buffer,
-    };
+    });
     shader_module.release();
 }
 
-pub fn deinit(
+fn deinit(
     renderer: *Mod,
 ) !void {
-    renderer.state.pipeline.release();
-    renderer.state.queue.release();
-    for (renderer.state.bind_groups) |bind_group| bind_group.release();
-    renderer.state.uniform_buffer.release();
+    renderer.state().pipeline.release();
+    renderer.state().queue.release();
+    for (renderer.state().bind_groups) |bind_group| bind_group.release();
+    renderer.state().uniform_buffer.release();
 }
 
-pub fn tick(
+fn tick(
     engine: *mach.Engine.Mod,
     renderer: *Mod,
 ) !void {
-    const device = engine.state.device;
+    const device = engine.state().device;
 
     // Begin our render pass
     const back_buffer_view = core.swap_chain.getCurrentTextureView().?;
@@ -128,28 +135,28 @@ pub fn tick(
 
     // Update uniform buffer
     var archetypes_iter = engine.entities.query(.{ .all = &.{
-        .{ .renderer = &.{ .location, .scale } },
+        .{ .renderer = &.{ .position, .scale } },
     } });
     var num_entities: usize = 0;
     while (archetypes_iter.next()) |archetype| {
         const ids = archetype.slice(.entity, .id);
-        const locations = archetype.slice(.renderer, .location);
+        const positions = archetype.slice(.renderer, .position);
         const scales = archetype.slice(.renderer, .scale);
-        for (ids, locations, scales) |id, location, scale| {
+        for (ids, positions, scales) |id, position, scale| {
             _ = id;
 
             const ubo = UniformBufferObject{
-                .offset = location.v,
+                .offset = position,
                 .scale = scale,
             };
-            encoder.writeBuffer(renderer.state.uniform_buffer, uniform_offset * num_entities, &[_]UniformBufferObject{ubo});
+            encoder.writeBuffer(renderer.state().uniform_buffer, uniform_offset * num_entities, &[_]UniformBufferObject{ubo});
             num_entities += 1;
         }
     }
 
     const pass = encoder.beginRenderPass(&render_pass_info);
-    for (renderer.state.bind_groups[0..num_entities]) |bind_group| {
-        pass.setPipeline(renderer.state.pipeline);
+    for (renderer.state().bind_groups[0..num_entities]) |bind_group| {
+        pass.setPipeline(renderer.state().pipeline);
         pass.setBindGroup(0, bind_group, &.{0});
         pass.draw(3, 1, 0, 0);
     }
@@ -159,7 +166,7 @@ pub fn tick(
     var command = encoder.finish(null);
     encoder.release();
 
-    renderer.state.queue.submit(&[_]*gpu.CommandBuffer{command});
+    renderer.state().queue.submit(&[_]*gpu.CommandBuffer{command});
     command.release();
     core.swap_chain.present();
     back_buffer_view.release();
