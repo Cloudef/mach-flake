@@ -111,6 +111,10 @@ with lib;
     read -r rev _ < <(git ls-remote https://github.com/hexops/mach.git HEAD)
     old_url="$(zon2json templates/engine/build.zig.zon | jq -er '.dependencies.mach.url')"
     if [[ "$old_url" != "https://pkg.machengine.org/mach/$rev.tar.gz" ]]; then
+      git clone https://github.com/hexops/mach.git "$tmpdir"/mach
+      rm -rf templates/engine/src
+      cp -rf "$tmpdir"/mach/examples/custom-renderer templates/engine/src
+      git add templates/engine/src
       generate mach-engine-project mach "$rev" > templates/engine/build.zig.zon
       mach_update=1
     fi
