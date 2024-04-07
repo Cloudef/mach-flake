@@ -9,7 +9,7 @@ https://machengine.org/
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 * Mach Zig: `0.12.0-dev.3180+83e578a18 @ 2024-03-08`
-* Mach Engine: `279290bbf2f1adab0af00323280a07d6bfff47a5`
+* Mach Engine: `f578e1f5e2513c4d3ddd5ed452196d4df8068642`
 
 ### Mach Engine
 
