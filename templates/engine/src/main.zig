@@ -1,13 +1,19 @@
-const mach = @import("mach");
+const std = @import("std");
 
-const Renderer = @import("Renderer.zig");
-const Game = @import("Game.zig");
+const mach = @import("mach");
 
 // The global list of Mach modules registered for use in our application.
 pub const modules = .{
-    mach.Engine,
-    Renderer,
-    Game,
+    mach.Core,
+    @import("App.zig"),
+    @import("Renderer.zig"),
 };
 
-pub const App = mach.App;
+// TODO: move this to a mach "entrypoint" zig module
+pub fn main() !void {
+    // Initialize mach core
+    try mach.core.initModule();
+
+    // Main loop
+    while (try mach.core.tick()) {}
+}

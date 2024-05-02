@@ -3,7 +3,6 @@
 const std = @import("std");
 
 const mach = @import("mach");
-const core = mach.core;
 const gpu = mach.gpu;
 const math = mach.math;
 
@@ -28,10 +27,10 @@ pub const components = .{
     .scale = .{ .type = f32 },
 };
 
-pub const global_events = .{
+pub const events = .{
     .init = .{ .handler = init },
     .deinit = .{ .handler = deinit },
-    .tick = .{ .handler = tick },
+    .render_frame = .{ .handler = renderFrame },
 };
 
 const UniformBufferObject = extern struct {
@@ -40,16 +39,16 @@ const UniformBufferObject = extern struct {
 };
 
 fn init(
-    engine: *mach.Engine.Mod,
+    core: *mach.Core.Mod,
     renderer: *Mod,
 ) !void {
-    const device = engine.state().device;
+    const device = core.state().device;
     const shader_module = device.createShaderModuleWGSL("shader.wgsl", @embedFile("shader.wgsl"));
 
     // Fragment state
     const blend = gpu.BlendState{};
     const color_target = gpu.ColorTargetState{
-        .format = core.descriptor.format,
+        .format = core.get(core.state().main_window, .framebuffer_format).?,
         .blend = &blend,
         .write_mask = gpu.ColorWriteMaskFlags.all,
     };
@@ -59,7 +58,9 @@ fn init(
         .targets = &.{color_target},
     });
 
+    const label = @tagName(name) ++ ".init";
     const uniform_buffer = device.createBuffer(&.{
+        .label = label ++ " uniform buffer",
         .usage = .{ .copy_dst = true, .uniform = true },
         .size = @sizeOf(UniformBufferObject) * uniform_offset * num_bind_groups,
         .mapped_at_creation = .false,
@@ -67,6 +68,7 @@ fn init(
     const bind_group_layout_entry = gpu.BindGroupLayout.Entry.buffer(0, .{ .vertex = true }, .uniform, true, 0);
     const bind_group_layout = device.createBindGroupLayout(
         &gpu.BindGroupLayout.Descriptor.init(.{
+            .label = label,
             .entries = &.{bind_group_layout_entry},
         }),
     );
@@ -74,9 +76,13 @@ fn init(
     for (bind_groups, 0..) |_, i| {
         bind_groups[i] = device.createBindGroup(
             &gpu.BindGroup.Descriptor.init(.{
+                .label = label,
                 .layout = bind_group_layout,
                 .entries = &.{
-                    gpu.BindGroup.Entry.buffer(0, uniform_buffer, uniform_offset * i, @sizeOf(UniformBufferObject)),
+                    if (mach.use_sysgpu)
+                        gpu.BindGroup.Entry.buffer(0, uniform_buffer, uniform_offset * i, @sizeOf(UniformBufferObject), @sizeOf(UniformBufferObject))
+                    else
+                        gpu.BindGroup.Entry.buffer(0, uniform_buffer, uniform_offset * i, @sizeOf(UniformBufferObject)),
                 },
             }),
         );
@@ -84,9 +90,11 @@ fn init(
 
     const bind_group_layouts = [_]*gpu.BindGroupLayout{bind_group_layout};
     const pipeline_layout = device.createPipelineLayout(&gpu.PipelineLayout.Descriptor.init(.{
+        .label = label,
         .bind_group_layouts = &bind_group_layouts,
     }));
     const pipeline_descriptor = gpu.RenderPipeline.Descriptor{
+        .label = label,
         .fragment = &fragment,
         .layout = pipeline_layout,
         .vertex = gpu.VertexState{
@@ -113,28 +121,22 @@ fn deinit(
     renderer.state().uniform_buffer.release();
 }
 
-fn tick(
-    engine: *mach.Engine.Mod,
+fn renderFrame(
+    core: *mach.Core.Mod,
     renderer: *Mod,
 ) !void {
-    const device = engine.state().device;
+    // Grab the back buffer of the swapchain
+    // TODO(Core)
+    const back_buffer_view = mach.core.swap_chain.getCurrentTextureView().?;
+    defer back_buffer_view.release();
 
-    // Begin our render pass
-    const back_buffer_view = core.swap_chain.getCurrentTextureView().?;
-    const color_attachment = gpu.RenderPassColorAttachment{
-        .view = back_buffer_view,
-        .clear_value = std.mem.zeroes(gpu.Color),
-        .load_op = .clear,
-        .store_op = .store,
-    };
-
-    const encoder = device.createCommandEncoder(null);
-    const render_pass_info = gpu.RenderPassDescriptor.init(.{
-        .color_attachments = &.{color_attachment},
-    });
+    // Create a command encoder
+    const label = @tagName(name) ++ ".tick";
+    const encoder = core.state().device.createCommandEncoder(&.{ .label = label });
+    defer encoder.release();
 
     // Update uniform buffer
-    var archetypes_iter = engine.entities.query(.{ .all = &.{
+    var archetypes_iter = core.entities.query(.{ .all = &.{
         .{ .renderer = &.{ .position, .scale } },
     } });
     var num_entities: usize = 0;
@@ -154,20 +156,34 @@ fn tick(
         }
     }
 
-    const pass = encoder.beginRenderPass(&render_pass_info);
+    // Begin render pass
+    const sky_blue_background = gpu.Color{ .r = 0.776, .g = 0.988, .b = 1, .a = 1 };
+    const color_attachments = [_]gpu.RenderPassColorAttachment{.{
+        .view = back_buffer_view,
+        .clear_value = sky_blue_background,
+        .load_op = .clear,
+        .store_op = .store,
+    }};
+    const render_pass = encoder.beginRenderPass(&gpu.RenderPassDescriptor.init(.{
+        .label = label,
+        .color_attachments = &color_attachments,
+    }));
+
+    // Draw
     for (renderer.state().bind_groups[0..num_entities]) |bind_group| {
-        pass.setPipeline(renderer.state().pipeline);
-        pass.setBindGroup(0, bind_group, &.{0});
-        pass.draw(3, 1, 0, 0);
+        render_pass.setPipeline(renderer.state().pipeline);
+        render_pass.setBindGroup(0, bind_group, &.{0});
+        render_pass.draw(3, 1, 0, 0);
     }
-    pass.end();
-    pass.release();
 
-    var command = encoder.finish(null);
-    encoder.release();
+    // Finish render pass
+    render_pass.end();
 
-    renderer.state().queue.submit(&[_]*gpu.CommandBuffer{command});
-    command.release();
-    core.swap_chain.present();
-    back_buffer_view.release();
+    // Submit our commands to the queue
+    var command = encoder.finish(&.{ .label = label });
+    defer command.release();
+    core.state().queue.submit(&[_]*gpu.CommandBuffer{command});
+
+    // Present the frame
+    core.send(.present_frame, .{});
 }

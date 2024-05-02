@@ -16,20 +16,32 @@ pub fn build(b: *std.Build) !void {
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
-    const app = try mach.App.init(b, .{
-        .name = "myapp",
-        .src = "src/main.zig",
+    const mach_dep = b.dependency("mach", .{
         .target = target,
         .optimize = optimize,
-        .deps = &.{},
     });
-    if (b.args) |args| app.run.addArgs(args);
+
+    const exe = b.addExecutable(.{
+        .name = "mach-app",
+        .root_source_file = .{ .path = "src/main.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+
+    mach.addPaths(&exe.root_module);
+    mach.link(mach_dep.builder, exe, &exe.root_module);
+    b.installArtifact(exe);
+    exe.root_module.addImport("mach", mach_dep.module("mach"));
+
+    const run_cmd = b.addRunArtifact(exe);
+    run_cmd.step.dependOn(b.getInstallStep());
+    if (b.args) |args| run_cmd.addArgs(args);
 
     // This creates a build step. It will be visible in the `zig build --help` menu,
     // and can be selected like this: `zig build run`
     // This will evaluate the `run` step rather than the default, which is "install".
-    const run_step = b.step("run", "Run the app");
-    run_step.dependOn(&app.run.step);
+    const run_step = b.step("run", "Run mach-app");
+    run_step.dependOn(&run_cmd.step);
 
     // Creates a step for unit testing. This only builds the test executable
     // but does not run it.
