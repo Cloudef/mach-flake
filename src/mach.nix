@@ -123,7 +123,7 @@ with lib;
     if [[ "$old_url" != "https://pkg.machengine.org/mach/$rev.tar.gz" ]]; then
       cp templates/core/build.zig.zon2json-lock "$tmpdir/core-lock"
       rm -rf templates/core
-      git clone https://github.com/hexops/mach-core-starter-project.git templates/core
+      git clone --branch unstable https://github.com/hexops/mach-core-starter-project.git templates/core
       rm -rf templates/core/.git
       generate mach-core-project mach "$rev" > templates/core/build.zig.zon
       mv "$tmpdir/core-lock" templates/core/build.zig.zon2json-lock
