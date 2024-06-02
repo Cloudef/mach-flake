@@ -14,7 +14,6 @@ const num_bind_groups = 1024 * 32;
 const uniform_offset = 256;
 
 pipeline: *gpu.RenderPipeline,
-queue: *gpu.Queue,
 bind_groups: [num_bind_groups]*gpu.BindGroup,
 uniform_buffer: *gpu.Buffer,
 
@@ -27,7 +26,7 @@ pub const components = .{
     .scale = .{ .type = f32 },
 };
 
-pub const events = .{
+pub const systems = .{
     .init = .{ .handler = init },
     .deinit = .{ .handler = deinit },
     .render_frame = .{ .handler = renderFrame },
@@ -44,6 +43,7 @@ fn init(
 ) !void {
     const device = core.state().device;
     const shader_module = device.createShaderModuleWGSL("shader.wgsl", @embedFile("shader.wgsl"));
+    defer shader_module.release();
 
     // Fragment state
     const blend = gpu.BlendState{};
@@ -65,6 +65,7 @@ fn init(
         .size = @sizeOf(UniformBufferObject) * uniform_offset * num_bind_groups,
         .mapped_at_creation = .false,
     });
+
     const bind_group_layout_entry = gpu.BindGroupLayout.Entry.buffer(0, .{ .vertex = true }, .uniform, true, 0);
     const bind_group_layout = device.createBindGroupLayout(
         &gpu.BindGroupLayout.Descriptor.init(.{
@@ -72,6 +73,8 @@ fn init(
             .entries = &.{bind_group_layout_entry},
         }),
     );
+    defer bind_group_layout.release();
+
     var bind_groups: [num_bind_groups]*gpu.BindGroup = undefined;
     for (bind_groups, 0..) |_, i| {
         bind_groups[i] = device.createBindGroup(
@@ -93,7 +96,9 @@ fn init(
         .label = label,
         .bind_group_layouts = &bind_group_layouts,
     }));
-    const pipeline_descriptor = gpu.RenderPipeline.Descriptor{
+    defer pipeline_layout.release();
+
+    const pipeline = device.createRenderPipeline(&gpu.RenderPipeline.Descriptor{
         .label = label,
         .fragment = &fragment,
         .layout = pipeline_layout,
@@ -101,27 +106,25 @@ fn init(
             .module = shader_module,
             .entry_point = "vertex_main",
         },
-    };
+    });
 
     renderer.init(.{
-        .pipeline = device.createRenderPipeline(&pipeline_descriptor),
-        .queue = device.getQueue(),
+        .pipeline = pipeline,
         .bind_groups = bind_groups,
         .uniform_buffer = uniform_buffer,
     });
-    shader_module.release();
 }
 
 fn deinit(
     renderer: *Mod,
 ) !void {
     renderer.state().pipeline.release();
-    renderer.state().queue.release();
     for (renderer.state().bind_groups) |bind_group| bind_group.release();
     renderer.state().uniform_buffer.release();
 }
 
 fn renderFrame(
+    entities: *mach.Entities.Mod,
     core: *mach.Core.Mod,
     renderer: *Mod,
 ) !void {
@@ -136,17 +139,13 @@ fn renderFrame(
     defer encoder.release();
 
     // Update uniform buffer
-    var archetypes_iter = core.entities.query(.{ .all = &.{
-        .{ .renderer = &.{ .position, .scale } },
-    } });
     var num_entities: usize = 0;
-    while (archetypes_iter.next()) |archetype| {
-        const ids = archetype.slice(.entity, .id);
-        const positions = archetype.slice(.renderer, .position);
-        const scales = archetype.slice(.renderer, .scale);
-        for (ids, positions, scales) |id, position, scale| {
-            _ = id;
-
+    var q = try entities.query(.{
+        .positions = Mod.read(.position),
+        .scales = Mod.read(.scale),
+    });
+    while (q.next()) |v| {
+        for (v.positions, v.scales) |position, scale| {
             const ubo = UniformBufferObject{
                 .offset = position,
                 .scale = scale,
@@ -168,6 +167,7 @@ fn renderFrame(
         .label = label,
         .color_attachments = &color_attachments,
     }));
+    defer render_pass.release();
 
     // Draw
     for (renderer.state().bind_groups[0..num_entities]) |bind_group| {
@@ -185,5 +185,5 @@ fn renderFrame(
     core.state().queue.submit(&[_]*gpu.CommandBuffer{command});
 
     // Present the frame
-    core.send(.present_frame, .{});
+    core.schedule(.present_frame);
 }

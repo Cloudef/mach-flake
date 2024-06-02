@@ -22,7 +22,7 @@ pub const components = .{
     .follower = .{ .type = void },
 };
 
-pub const events = .{
+pub const systems = .{
     .init = .{ .handler = init },
     .deinit = .{ .handler = deinit },
     .tick = .{ .handler = tick },
@@ -38,23 +38,25 @@ pub const name = .app;
 // Note that Mod.state() returns an instance of our module struct.
 pub const Mod = mach.Mod(@This());
 
-pub fn deinit(core: *mach.Core.Mod) void {
-    core.send(.deinit, .{});
+pub fn deinit(core: *mach.Core.Mod, renderer: *Renderer.Mod) void {
+    renderer.schedule(.deinit);
+    core.schedule(.deinit);
 }
 
-// TODO(important): remove need for returning an error here
 fn init(
     // These are injected dependencies - as long as these modules were registered in the top-level
     // of the program we can have these types injected here, letting us work with other modules in
     // our program seamlessly and with a type-safe API:
+    entities: *mach.Entities.Mod,
     core: *mach.Core.Mod,
     renderer: *Renderer.Mod,
     game: *Mod,
 ) !void {
-    renderer.send(.init, .{});
+    core.schedule(.init);
+    renderer.schedule(.init);
 
     // Create our player entity.
-    const player = try core.newEntity();
+    const player = try entities.new();
 
     // Give our player entity a .renderer.position and .renderer.scale component. Note that these
     // are defined by the Renderer module, so we use `renderer: *Renderer.Mod` to interact with
@@ -75,11 +77,11 @@ fn init(
         .player = player,
     });
 
-    core.send(.start, .{});
+    core.schedule(.start);
 }
 
-// TODO(important): remove need for returning an error here
 fn tick(
+    entities: *mach.Entities.Mod,
     core: *mach.Core.Mod,
     renderer: *Renderer.Mod,
     game: *Mod,
@@ -111,7 +113,7 @@ fn tick(
                     else => {},
                 }
             },
-            .close => core.send(.exit, .{}), // Send an event telling mach to exit the app
+            .close => core.schedule(.exit), // Send an event telling mach to exit the app
             else => {},
         }
     }
@@ -133,7 +135,7 @@ fn tick(
         _ = game.state().spawn_timer.lap(); // Reset the timer
         for (0..5) |_| {
             // Spawn a new entity at the same position as the player, but smaller in scale.
-            const new_entity = try core.newEntity();
+            const new_entity = try entities.new();
             try renderer.set(new_entity, .position, player_pos);
             try renderer.set(new_entity, .scale, 1.0 / 6.0);
 
@@ -154,27 +156,29 @@ fn tick(
 
     // Query all the entities that have the .follower tag indicating they should follow the player.
     // TODO(important): better querying API
-    var archetypes_iter = core.entities.query(.{ .all = &.{
-        .{ .app = &.{.follower} },
-    } });
-    while (archetypes_iter.next()) |archetype| {
-        // Iterate the ID and position of each entity
-        const ids = archetype.slice(.entity, .id);
-        const positions = archetype.slice(.renderer, .position);
-        for (ids, positions) |id, position| {
+
+    // Iterate the ID and position of each follower entity
+    var q = try entities.query(.{
+        .ids = mach.Entities.Mod.read(.id),
+        .followers = Mod.read(.follower),
+        .positions = Renderer.Mod.write(.position),
+    });
+    while (q.next()) |v| {
+        for (v.ids, v.positions) |id, *position| {
             // Nested query to find all the other follower entities that we should move away from.
             // We will avoid all other follower entities if we're too close to them.
             // This is not very efficient, but it works!
             const close_dist = 1.0 / 15.0;
             var avoidance = Vec3.splat(0);
             var avoidance_div: f32 = 1.0;
-            var archetypes_iter_2 = core.entities.query(.{ .all = &.{
-                .{ .app = &.{.follower} },
-            } });
-            while (archetypes_iter_2.next()) |archetype_2| {
-                const other_ids = archetype_2.slice(.entity, .id);
-                const other_positions = archetype_2.slice(.renderer, .position);
-                for (other_ids, other_positions) |other_id, other_position| {
+
+            var q2 = try entities.query(.{
+                .ids = mach.Entities.Mod.read(.id),
+                .followers = Mod.read(.follower),
+                .positions = Renderer.Mod.read(.position),
+            });
+            while (q2.next()) |v2| {
+                for (v2.ids, v2.positions) |other_id, other_position| {
                     if (id == other_id) continue;
                     if (position.dist(&other_position) < close_dist) {
                         avoidance = avoidance.sub(&position.dir(&other_position, 0.0000001));
@@ -199,9 +203,9 @@ fn tick(
             new_position = new_position.lerp(&vec3(0, 0, 0), move_speed / avoidance_div);
 
             // Finally, update our entity position.
-            try renderer.set(id, .position, new_position);
+            position.* = new_position;
         }
     }
 
-    renderer.send(.render_frame, .{});
+    renderer.schedule(.render_frame);
 }

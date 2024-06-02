@@ -1,8 +1,8 @@
 {
-  "12204011da2770a26af0cc0e6cf7e7478fcf6d4f3b4dbc377b1aa2a0be92271e7704": {
+  "1220bacbceeb9afde58123d509d7404c364739762a5c0ed446ae8a884e5e18621c6c": {
     "name": "mach",
-    "url": "https://pkg.machengine.org/mach/9d95fcf0c243db8e878e06de95d3a8d0f7d556b4.tar.gz",
-    "hash": "sha256-t4q7z9m8HYpLqvk3KRKGNgLJCQWqiyM+1H0yeJOVtYA="
+    "url": "https://pkg.machengine.org/mach/13ff5097dba3a1d506b0563ade5839ca8551532b.tar.gz",
+    "hash": "sha256-v+VGcl/RJBr3qGBVYTUZBGm3fuc06ka3O/ygkb16zfw="
   },
   "1220fcebb0b1a4561f9d116182e30d0a91d2a556dad8564c8f425fd729556dedc7cf": {
     "name": "mach_freetype",
@@ -129,9 +129,9 @@
     "url": "https://pkg.machengine.org/opusenc/767b8d0564024f1db2c0325fed188eeed5439742.tar.gz",
     "hash": "sha256-p/8zwh2/IeFUGNRohaMLL5tBRkdIK1j5sntF/X5fo1c="
   },
-  "1220cb4b50aa4178b9b10a5e5628fc743abb2e3b264ce63c837c21b3b22a64dc3be2": {
+  "122068f781d131e31726bae92057130492953b3276c272388a4e078f94d16b197b6b": {
     "name": "mach_example_assets",
-    "url": "https://pkg.machengine.org/mach-example-assets/2200080af808e70fb20062c78c8e3e110605ac74.tar.gz",
-    "hash": "sha256-46slfiCLnPbTr4SOQcnOWGpLoPx5jrIpbpB5iJ7eQig="
+    "url": "https://pkg.machengine.org/mach-example-assets/9fef2d88fa31cda58a829fa620593bb8d6d84e7f.tar.gz",
+    "hash": "sha256-cRMkYMtyA+Jr0keDH0PP3ONTdy6iKgJKqHt/2Rke3Lo="
   }
 }
