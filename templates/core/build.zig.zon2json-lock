@@ -1,8 +1,8 @@
 {
-  "1220bacbceeb9afde58123d509d7404c364739762a5c0ed446ae8a884e5e18621c6c": {
+  "1220b3ce66325074d039471a2cf5496179c0f43dd4253cb5abff574507359c1277e7": {
     "name": "mach",
-    "url": "https://pkg.machengine.org/mach/13ff5097dba3a1d506b0563ade5839ca8551532b.tar.gz",
-    "hash": "sha256-v+VGcl/RJBr3qGBVYTUZBGm3fuc06ka3O/ygkb16zfw="
+    "url": "https://pkg.machengine.org/mach/3df871d8b1b551546b20caf23d9adee4f268622d.tar.gz",
+    "hash": "sha256-K+a542ofne4MWksBIQkvNVNluPdbPG5KZjkt/ljklGs="
   },
   "1220fcebb0b1a4561f9d116182e30d0a91d2a556dad8564c8f425fd729556dedc7cf": {
     "name": "mach_freetype",
@@ -69,11 +69,6 @@
     "url": "https://pkg.machengine.org/wayland-headers/4926b8c635aa2f215b0d5382060fc4091aa7b705.tar.gz",
     "hash": "sha256-RGTisM4wtGE5cIqNIqKBmwWWS4Bk8VFvVXVLtp2ARdc="
   },
-  "1220db6845ce34743ae2a1ab0222efc942496adde2736c20e3443d4fde4ef64b11b9": {
-    "name": "mach_sysjs",
-    "url": "https://pkg.machengine.org/mach-sysjs/eeef024f79beae189b7a4ed85e64ed076e76d538.tar.gz",
-    "hash": "sha256-kHGIGw4h2QvZ355Df6PM4peE8VP9oK0O3vkAtbvNrgM="
-  },
   "1220049052fca861248fa6fb8bc24ecdb038049be0a3b22352bebc40e4dc2d2c981b": {
     "name": "mach_objc",
     "url": "https://pkg.machengine.org/mach-objc/a7c3483702998aa0e960a788b9f611389f17d402.tar.gz",
@@ -98,11 +93,6 @@
     "name": "zigimg",
     "url": "https://github.com/slimsag/zigimg/archive/19a49a7e44fb4b1c22341dfbd6566019de742055.tar.gz",
     "hash": "sha256-YpzLJXWNRvgs6Oj+MoRvLzVEieRIpMJUyHyRY3B2Ods="
-  },
-  "1220c1c16fa17783379f773c291af3693b84744200099f1cf5c1ddb66c4fe88bcf3a": {
-    "name": "mach_model3d",
-    "url": "https://pkg.machengine.org/mach-model3d/5d4dd54db2da123b38656d4574afaa4c04fd3838.tar.gz",
-    "hash": "sha256-XY6RYdCO96nKzIEMK21dTttrItVgbLuiL6nWvq7CW+Y="
   },
   "1220821426e087874779f8d76a6bb74844aa3934648aad5b7331701e5f386791c51e": {
     "name": "mach_opus",
