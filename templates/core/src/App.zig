@@ -12,6 +12,7 @@ pub const systems = .{
     .tick = .{ .handler = tick },
 };
 
+title_timer: mach.Timer,
 pipeline: *gpu.RenderPipeline,
 
 pub fn deinit(core: *mach.Core.Mod, game: *Mod) void {
@@ -59,14 +60,17 @@ fn afterInit(game: *Mod, core: *mach.Core.Mod) !void {
 
     // Store our render pipeline in our module's state, so we can access it later on.
     game.init(.{
+        .title_timer = try mach.Timer.start(),
         .pipeline = pipeline,
     });
+    try updateWindowTitle(core);
 
-    // Start the loop so we get .tick events
     core.schedule(.start);
 }
 
 fn tick(core: *mach.Core.Mod, game: *Mod) !void {
+    // TODO(important): event polling should occur in mach.Core module and get fired as ECS event.
+    // TODO(Core)
     var iter = mach.core.pollEvents();
     while (iter.next()) |event| {
         switch (event) {
@@ -76,6 +80,7 @@ fn tick(core: *mach.Core.Mod, game: *Mod) !void {
     }
 
     // Grab the back buffer of the swapchain
+    // TODO(Core)
     const back_buffer_view = mach.core.swap_chain.getCurrentTextureView().?;
     defer back_buffer_view.release();
 
@@ -112,4 +117,24 @@ fn tick(core: *mach.Core.Mod, game: *Mod) !void {
 
     // Present the frame
     core.schedule(.present_frame);
+
+    // update the window title every second
+    if (game.state().title_timer.read() >= 1.0) {
+        game.state().title_timer.reset();
+        try updateWindowTitle(core);
+    }
+}
+
+fn updateWindowTitle(core: *mach.Core.Mod) !void {
+    try mach.Core.printTitle(
+        core,
+        core.state().main_window,
+        "core-custom-entrypoint [ {d}fps ] [ Input {d}hz ]",
+        .{
+            // TODO(Core)
+            mach.core.frameRate(),
+            mach.core.inputRate(),
+        },
+    );
+    core.schedule(.update);
 }

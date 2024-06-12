@@ -112,22 +112,17 @@ with lib;
     old_url="$(zon2json templates/engine/build.zig.zon | jq -er '.dependencies.mach.url')"
     if [[ "$old_url" != "https://pkg.machengine.org/mach/$rev.tar.gz" ]]; then
       git clone https://github.com/hexops/mach.git "$tmpdir"/mach
+
       rm -rf templates/engine/src
       cp -rf "$tmpdir"/mach/examples/custom-renderer templates/engine/src
       git add templates/engine/src
       generate mach-engine-project mach "$rev" > templates/engine/build.zig.zon
-      mach_update=1
-    fi
 
-    old_url="$(zon2json templates/core/build.zig.zon | jq -er '.dependencies.mach.url')"
-    if [[ "$old_url" != "https://pkg.machengine.org/mach/$rev.tar.gz" ]]; then
-      cp templates/core/build.zig.zon2json-lock "$tmpdir/core-lock"
-      rm -rf templates/core
-      git clone --branch unstable https://github.com/hexops/mach-core-starter-project.git templates/core
-      rm -rf templates/core/.git
+      rm -rf templates/core/src
+      cp -rf "$tmpdir"/mach/examples/core/triangle templates/core/src
+      git add templates/core/src
       generate mach-core-project mach "$rev" > templates/core/build.zig.zon
-      mv "$tmpdir/core-lock" templates/core/build.zig.zon2json-lock
-      git add templates/core/build.zig.zon2json-lock
+
       mach_update=1
     fi
 

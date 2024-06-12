@@ -2,7 +2,7 @@
   description = "mach-core-project flake";
 
   inputs = {
-    mach.url = "github:Cloudef/mach-flake?rev=12ada11841085da3d2b2e0f76be70c80c447d032";
+    mach.url = "github:Cloudef/mach-flake?rev=519a53f10a76755839353ff1aeccdbf630872d55";
   };
 
   outputs = { mach, ... }: let
