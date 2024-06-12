@@ -4,6 +4,8 @@ Flake that allows you to get started with Mach engine quickly.
 
 https://machengine.org/
 
+* Cachix: `cachix use mach-flake`
+
 ---
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
