@@ -67,8 +67,8 @@ in packageForTarget target (
   NO_ENSURE_GIT = "true";
   # https://github.com/hexops/mach-gpu-dawn/blob/main/build.zig
   postPatch = ''
-    mkdir -p zig-cache/mach
-    ln -s ${dawn-binary} zig-cache/mach/gpu-dawn
+    mkdir -p $ZIG_LOCAL_CACHE_DIR/mach
+    ln -s ${dawn-binary} $ZIG_LOCAL_CACHE_DIR/mach/gpu-dawn
     ${attrs.postPatch or ""}
     '';
 })
