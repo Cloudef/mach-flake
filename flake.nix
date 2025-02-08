@@ -68,9 +68,7 @@
         # Enable OpenGL support.
         enableOpenGL ? true,
         # Enable Wayland support.
-        # Disabled by default because mach-core example currently panics with:
-        # error(mach): glfw: error.FeatureUnavailable: Wayland: The platform does not provide the window position
-        enableWayland ? false,
+        enableWayland ? true,
         # Enable X11 support.
         enableX11 ? true,
         # Enable Alsa support.
@@ -91,11 +89,7 @@
         #! You can still compile to other platforms by using package and specifying zigTarget.
         #! When compiling to non-nix supported targets, you can't rely on pkgsForTarget, but rather have to provide all the pkgs yourself.
         #! NOTE: Even though target is supported by nix, cross-compiling to it might not be, in that case you should get an error.
-        packageForTarget = target: (env.crossPkgsForTarget target).callPackage (pkgs.callPackage ./src/package.nix {
-          inherit target;
-          inherit (env) packageForTarget;
-          inherit (env.lib) resolveTargetSystem;
-        });
+        packageForTarget = env.packageForTarget;
 
         #! Packages mach project.
         #! NOTE: You must first generate build.zig.zon2json-lock using zon2json-lock.
@@ -202,7 +196,7 @@
       devShells.default = devShells.env.mach-latest.bin;
 
       apps.mach = pkgs.callPackage src/mach.nix {
-        inherit test-app mach-binary-triples;
+        inherit test-app;
         inherit (packages) zon2json;
         inherit (test-env) zig;
       };

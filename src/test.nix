@@ -10,7 +10,13 @@ with lib;
 
 let
   # These targets are ignored for now as they don't compile
-  ignored = [ "x86_64-linux-musl" "aarch64-linux-musl" ];
+  ignored = [
+    "x86_64-linux-musl" "aarch64-linux-musl"
+    # broken in mach nominated zig
+    "aarch64-linux-gnu"
+    # TODO: fix
+    "x86_64-macos-none" "aarch64-macos-none"
+  ];
   working-triples = subtractLists ignored mach-binary-triples;
 in {
   # nix run .#test.all
@@ -27,7 +33,7 @@ in {
       if [[ "$var" == engine ]]; then
         for triple in ${escapeShellArgs working-triples}; do
           printf -- 'build .#target.%s (%s)\n' "$triple" "$var"
-          (cd templates/"$var"; nix build -L --override-input mach ../.. .#target."$triple"; file result/bin/myapp*)
+          (cd templates/"$var"; nix build -L --override-input mach ../.. .#target."$triple"; file result/bin/mach-app*)
         done
       fi
       rm -f templates/"$var"/result

@@ -8,14 +8,21 @@ jobs:
   pr:
     runs-on: ${{ matrix.os }}
 
+    permissions:
+      id-token: write
+      contents: write
+
     strategy:
         matrix:
             os: [ubuntu-latest, macos-latest]
 
     steps:
+      - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
+        with:
+          determinate: true
+      - uses: DeterminateSystems/flakehub-cache-action@main
       - run: |
           nix run .#mach.update-flakes
           nix run .#test.all

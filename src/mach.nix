@@ -1,66 +1,18 @@
 {
-  lib
-  , test-app
-  , mach-binary-triples
+  test-app
   , zon2json
-  , file
   , curl
   , jq
   , coreutils
   , gnused
-  , gnugrep
   , git
   , zig
 }:
-
-with builtins;
-with lib;
 
 {
   # nix run .#mach.update-zig-versions
   update-zig-versions = test-app [ curl jq ] ''
     curl -sSL https://machengine.org/zig/index.json | jq 'with_entries(select(.key|(startswith("mach-") or endswith("-mach"))))'
-    '';
-
-  # nix run .#mach.update-binaries
-  update-binaries = let
-    base-url = "https://github.com/hexops/mach-gpu-dawn/releases/download";
-  in test-app [ coreutils gnused gnugrep jq ] ''
-    tmpdir="$(mktemp -d)"
-    trap 'rm -rf "$tmpdir"' EXIT
-
-    extract_dawn_versions() {
-      while read -r dawn_rev; do
-        curl -sSL "https://raw.githubusercontent.com/hexops/mach-gpu-dawn/$dawn_rev/build.zig" |\
-          grep -o 'binary_version:.*"' | sed 's/.*=[ ]*"\([a-z0-9-]*\)"/\1/'
-      done
-    }
-
-    generate_json() {
-      extract_dawn_versions | sort -u | while read -r ver; do
-        curl -sSL "${base-url}/$ver/headers.json.gz" -o "$tmpdir/dawn-headers.gz"
-        for triple in ${concatStringsSep " " mach-binary-triples}; do
-          if [[ "$triple" == *-windows-* ]]; then
-            curl -sSL "${base-url}/$ver/dawn_''${triple}_release-fast.lib.gz" -o "$tmpdir/dawn-lib.gz"
-          else
-            curl -sSL "${base-url}/$ver/libdawn_''${triple}_release-fast.a.gz" -o "$tmpdir/dawn-lib.gz"
-          fi
-          cat <<EOF
-    {
-      "dawn-$triple": {
-        "ver": "$ver",
-        "lib": "$(nix hash file "$tmpdir/dawn-lib.gz")",
-        "hdr": "$(nix hash file "$tmpdir/dawn-headers.gz")"
-      }
-    }
-    EOF
-        done
-      done | jq -es add
-    }
-
-    generate_json < <(
-      jq -er '.[] | select(.name == "mach_gpu_dawn") | .url' templates/*/build.zig.zon2json-lock |\
-      sed 's,.*/\([0-9a-f]*\).*,\1,' | sort -u)
     '';
 
   # nix run .#mach.update-flakes
@@ -119,7 +71,7 @@ with lib;
       generate mach-engine-project mach "$rev" > templates/engine/build.zig.zon
 
       rm -rf templates/core/src
-      cp -rf "$tmpdir"/mach/examples/core/triangle templates/core/src
+      cp -rf "$tmpdir"/mach/examples/core-triangle templates/core/src
       git add templates/core/src
       generate mach-core-project mach "$rev" > templates/core/build.zig.zon
 
@@ -139,7 +91,6 @@ with lib;
       nix run .#autofix -- templates/"$var"
     done
 
-    nix run .#mach.update-binaries > mach-binaries.json
     nix run .#readme > README.md
     '';
 }

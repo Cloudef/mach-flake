@@ -1,127 +1,107 @@
 {
-  "12206c34197e552379b7b83b9b71e16230d3c87b5bff689f80d686b41b3486e9f486": {
+  "122090d51de7c858e1c0871254734ece8ed59cd3b327c2dd0ed4636f4333c26c5e5c": {
     "name": "mach",
-    "url": "https://pkg.machengine.org/mach/2f0415a60325868a72eab08e93746c804b9e66b9.tar.gz",
-    "hash": "sha256-O7rcK+pay5XqEJB5gKZLsPMa1CZeH6XPgDPPhhEKom8="
+    "url": "https://pkg.machengine.org/mach/9749cd9a654b30c1730c7ad2f380649a9e8b3bfb.tar.gz",
+    "hash": "sha256-YL3Bgs03abB9xGO9LfL+e15ucoDFXi0SXIVjMklbqMo="
   },
-  "12206251ed342f400b80abf3c338521f5d8c83eb596899abf77a2afe0cfd46e61ff0": {
+  "1220adfccce3dbc4e4fa8650fdaec110a676f6b8a1462ed6ef422815207f8288e9d2": {
     "name": "mach_freetype",
-    "url": "https://pkg.machengine.org/mach-freetype/86fc8024d4ddd53df75dfa4f3ad4eebe0b1b4284.tar.gz",
-    "hash": "sha256-p3C1I5qANalyy/j2Et1bRfyKX8y+yH2PbeNKr6lsgqw="
+    "url": "https://pkg.machengine.org/mach-freetype/d63efa5534c17f3a12ed3d327e0ad42a64adc20a.tar.gz",
+    "hash": "sha256-SWpwVMrXQGSRHHnDuCNP0kxjlziDJ+UcEiOjonrTRlU="
   },
-  "1220babb7939707ca390b934657dfd3c8c3a6a78cc9442e4cbd43e3f9ffd49daec9e": {
+  "12204cba3a237cd2c4ab983f5a28d9b54e7a9912d8c7c6e38e23140b0171d6e1ebf8": {
     "name": "freetype",
-    "url": "https://pkg.machengine.org/freetype/e8c5b37f320db03acba410d993441815bc809606.tar.gz",
-    "hash": "sha256-vnLc6+kpf+jmSZyeYAcO0iTKsgt6pvPQENskrD0o5Kc="
+    "url": "https://pkg.machengine.org/freetype/972cd37bccecae2cc9f54cf0b562263a13209d02.tar.gz",
+    "hash": "sha256-3wo3u1zniDJJFX292CY+mxh9kEgqGGa501e1+bWuzo0="
   },
-  "122059777e9e24227733f386b2929a78e15be9b748c99dba0d209744c910671b101c": {
+  "122031789a7c6364c2f99164c1183661bb5fe914ad7336cc224039c7fba649f35c47": {
     "name": "brotli",
-    "url": "https://pkg.machengine.org/brotli/4c10522a5fa3b4fd7f8beedc8af1e20309719da9.tar.gz",
-    "hash": "sha256-rYdJkDtdGf0t3Yu/10sMjFDuNOn9gQ1euBbwzk+fex0="
+    "url": "https://pkg.machengine.org/brotli/10961426f03016e273f4f4653eae907e9e2339b6.tar.gz",
+    "hash": "sha256-fKHDFopY8WCcOO3/5eR/qTFoUX8nt8ARjKcGtVhpyXo="
   },
-  "1220557b115b730afbece2ff4a073b6dc095d143318ba2f6b258cee13f580dd7e8ba": {
+  "1220203218ac17e497f3399e08115e73cb9505f1b9f07738eb0c5cc38ca443dec953": {
     "name": "harfbuzz",
-    "url": "https://pkg.machengine.org/harfbuzz/cecd5c8d34d343c0ab8b4dc6d2b0e2c08da52936.tar.gz",
-    "hash": "sha256-dnZcFZhkdziv5nTr9bQSjH5HtGJxKnelH3fmCEnSv1Y="
+    "url": "https://pkg.machengine.org/harfbuzz/c514da98afcf5d9ad6854a7f09192f9ecfaeb061.tar.gz",
+    "hash": "sha256-Ky7muGbrekp6Ecoyow35GMBVjPEGux8EOPIt+YVPw70="
   },
-  "12202b816e7c31c516bd87218fd56f9b1f93671e4ab42a2a98110d586c4b3bdd2730": {
+  "1220521ff5b01885da9b3cba75b607b315f60ae351594ee9e4a270b164374889fea0": {
     "name": "font_assets",
-    "url": "https://pkg.machengine.org/font-assets/899f16b815fde126ba8f6fb781e65253f461b7bf.tar.gz",
-    "hash": "sha256-ThBl7oGnxuOK0ySANZvclcC3JnU84YEV08J2xRM/rtk="
+    "url": "https://pkg.machengine.org/font-assets/b2336a29b1ae633d47452a2041b258e9538ef5f0.tar.gz",
+    "hash": "sha256-kbYQwFLIeCfEx4/n2NQa5ot7rXu8IlnSQedVHMWPi+c="
   },
-  "122060fbe61aa4a828002ca8949d9c3ef1b6b7ae3fa92558af7ccea7182e8d9d516c": {
-    "name": "mach_gpu_dawn",
-    "url": "https://pkg.machengine.org/mach-gpu-dawn/d0a1e11ac96401108ba7c35bf99101c0756ded2d.tar.gz",
-    "hash": "sha256-jx7hfKNQLqfUZhj66vVxYw2Es18pUdzKGBueoYLWOl8="
-  },
-  "12205d131983601cdb3500f38e9d8adaed5574fb0211b8b39291d2e9b90c6555ce59": {
-    "name": "xcode_frameworks",
-    "url": "https://pkg.machengine.org/xcode-frameworks/122b43323db27b2082a2d44ed2121de21c9ccf75.tar.gz",
-    "hash": "sha256-+FS1jYPDAXM7+gTaxoJ1nrDb/CC+jBmL6pj7QffweG8="
-  },
-  "12203594c3c97220742be1cc5343547bb25d8947e77bd52c50ef713da676d6f6d31f": {
-    "name": "direct3d_headers",
-    "url": "https://pkg.machengine.org/direct3d-headers/9417c58f11628b7072f0c63b687282de83592891.tar.gz",
-    "hash": "sha256-msGKqCEh/4Z+mpfIMki8BuqDGCZ85h6mHx8LLhnd2AI="
-  },
-  "122058b98f7d2ac86597363d0c0515c30aea392c605d5976c600196bd2c5b08b95d6": {
-    "name": "vulkan_headers",
-    "url": "https://pkg.machengine.org/vulkan-headers/ae4bb705e6cad613825d9e7d8ffc29ca595f54cb.tar.gz",
-    "hash": "sha256-WWshEqy6velhWmVNhy7oTLvNFbQFbTTTddQXS/sgFT4="
-  },
-  "1220ddf168c855cf69b4f8c5284403106a3c681913e34453df10cc5a588d9bd1d005": {
-    "name": "x11_headers",
-    "url": "https://pkg.machengine.org/x11-headers/22bb51a939722a819bf52aba100ac6c25acfbaff.tar.gz",
-    "hash": "sha256-sswJnzvlUaR4rgKopvc+mP/95gEHi5NUa1ZPyWudX1s="
-  },
-  "1220e5343c2fe2a490aa90dc52d92fd34ebfd7d0ffc7d246dd4720bb5c339ead4d7b": {
-    "name": "mach_glfw",
-    "url": "https://pkg.machengine.org/mach-glfw/8da44b719e345097664ff2e0a7620474eb11db5f.tar.gz",
-    "hash": "sha256-IcRLz6lmtMQ7yl+GhmUfI1GqzyxfuNhDRKg2Y3gStvU="
-  },
-  "1220c15e66c13f9633fcfd50b5ed265f74f2950c98b1f1defd66298fa027765e0190": {
-    "name": "glfw",
-    "url": "https://pkg.machengine.org/glfw/e6f377baed70a7bef9fa08d808f40b64c5136bf6.tar.gz",
-    "hash": "sha256-YC0HA4E1NYBqk1L10381/Y9hf55yBSraocO5E4Ok0+0="
-  },
-  "1220f350a0782d20a6618ea4e2884f7d0205a4e9b02c2d65fe3bf7b8113e7860fadf": {
-    "name": "wayland_headers",
-    "url": "https://pkg.machengine.org/wayland-headers/ed5542501a548ac23841c8f22cec0af89f46325a.tar.gz",
-    "hash": "sha256-owenIPF91qbOnoZGG1Pf0sBaMw9EbkxKoaMK/JVu2gw="
-  },
-  "1220211475420584a552b461dd569f891d29cb8e9e485b97053be604680c8d6e2a3e": {
+  "12203675829014e69be2ea7c126ecf25d403009d336b7ca5f6e7c4ccede826c8e597": {
     "name": "mach_objc",
-    "url": "https://pkg.machengine.org/mach-objc/055619a732ae50ba24eb04399613be87f8432f0f.tar.gz",
-    "hash": "sha256-Zwrrvq6voMiqXfQT7Y4LutarbTIlQ/pWHGmMtqElu5c="
+    "url": "https://pkg.machengine.org/mach-objc/79b6f80c32b14948554958afe72dace261b14afc.tar.gz",
+    "hash": "sha256-bcBJnu1zDs123offi7G3BdLjltB4E171Nhf43IqdX4Y="
   },
-  "12209f5ec4fa073c3b5b5129a72b7b230596af48a732bed539e35161395ed590095d": {
+  "122098b9174895f9708bc824b0f9e550c401892c40a900006459acf2cbf78acd99bb": {
+    "name": "xcode_frameworks",
+    "url": "https://pkg.machengine.org/xcode-frameworks/9a45f3ac977fd25dff77e58c6de1870b6808c4a7.tar.gz",
+    "hash": "sha256-jWMT0p7klpkgX9GOUNAhrR2e6Ej7MobbqT5ZxJrNQoM="
+  },
+  "1220334a0e3480fef60443cef8b519d08b4dbf16ba37d98a7b77647fa4b7761b6048": {
+    "name": "directx_headers",
+    "url": "https://pkg.machengine.org/directx-headers/eae9b3b8a84a32ae9e67025fd64e8d8b7755e628.tar.gz",
+    "hash": "sha256-DxojbEE0VMxbrufyikigVczWL+lRYAIQmN+CZxQVvfc="
+  },
+  "1220c30350b7b45f4623aeaf1c5b2c9ceda5d626de2ff5a3f2f54e4a68a80358426b": {
     "name": "opengl_headers",
-    "url": "https://pkg.machengine.org/opengl-headers/96c7c6eca973240a503016ca9d270d76e75dc590.tar.gz",
-    "hash": "sha256-5uUcSGwiJXmnykenpjypdf0qmg8denreHwsSouN83ls="
+    "url": "https://pkg.machengine.org/opengl-headers/d0b37fdc3b039ba5b430110545f398f0278c5396.tar.gz",
+    "hash": "sha256-AMZLidycaj5OfHuLYtxYFP4dM0OkzS566Ff3g3AF2IY="
   },
-  "1220d2b6789b71a94e692cb2f060bff4ffa4edfe196216cd573da68e74ab884eb34e": {
+  "12208333c8b3551908b66b8a421e7127bdf0c1806063836576283860eff99c99c521": {
     "name": "vulkan_zig_generated",
-    "url": "https://pkg.machengine.org/vulkan-zig-generated/b97664ad438782f723020efb07c3e59e0b3c90c0.tar.gz",
-    "hash": "sha256-0TKTf59/jtV+lrpPfEWl8rgHEP8/0iRIcnhaSF7REQs="
+    "url": "https://pkg.machengine.org/vulkan-zig-generated/4134f910302a71731d8d32c91cfc1bc914e6d26b.tar.gz",
+    "hash": "sha256-34CIyqNjrfIyNYyNdx9Lyw644P/RmB0GDOygZaQ1Uqk="
   },
-  "122042c20087cc1e40d24a61c9d725be36ac5914d6e87e1776cc3cfaecedbcc0be16": {
+  "12209e63e7efddd85cca44cbb13d20ef30c72ff4c409372dd75a128a354b27e9dc4c": {
     "name": "linux_audio_headers",
-    "url": "https://pkg.machengine.org/linux-audio-headers/55524472876fe73bac0dcaa11b38f92958751ad4.tar.gz",
-    "hash": "sha256-ZAatAb41JWxgT2qOxnju1GUloiVl9OWPSfRUnGv3LMo="
+    "url": "https://pkg.machengine.org/linux-audio-headers/81f1f13828a8b62467200ba2a0b0d911c4d089a7.tar.gz",
+    "hash": "sha256-Qd3XbMTkOVcLN+v8HHsExcsxj+m5exkmJzCfuaH+mZo="
   },
-  "1220dc313944ea71a87b4f54f26b1427ad2992a721a221cb42f7f80b8eee4e4944b7": {
+  "1220563c3d5603a02e61293c2c0223e01a3f298fb606bf0d108293b925434970a207": {
+    "name": "wayland_headers",
+    "url": "https://pkg.machengine.org/wayland-headers/7c53e7483c3cfb5c6780ae542c9f5cfa712a826a.tar.gz",
+    "hash": "sha256-uGIvMyp+xR1jQXTDr6RqYl40Ukiw9l3fW1t6XpYztPY="
+  },
+  "1220083b369e019a5efbd188a58a25759c09a126e1847200ff9e88f5ccbd2dc846e3": {
+    "name": "x11_headers",
+    "url": "https://pkg.machengine.org/x11-headers/bc049ff07d31014d4d409cc328c3feb57c9b9a83.tar.gz",
+    "hash": "sha256-G1nqFsWSQ5wOiKagy53jpiHesDpYU4kUSbrzi3er4tw="
+  },
+  "12201b874ac217853e59f55477b96cb7a66d43a5930ed9b4f0cfc7113efc8f5a6449": {
     "name": "zigimg",
-    "url": "https://github.com/zigimg/zigimg/archive/588f11f24cdc3b12f46082217dc830436b7f325e.tar.gz",
-    "hash": "sha256-T4d7ufsdHnLhnXTNwOGeNTJubulfhS5ng6lZxYA1z1I="
+    "url": "https://github.com/zigimg/zigimg/archive/48bfe6d413a5b3723a7bcf36f1fabbba30efef68.tar.gz",
+    "hash": "sha256-dnfzMqAZIAYBqbJY+igMzxfsoKkNViZcki7eP+f/zII="
   },
-  "12203e942ae6563c5fb05dff8e8a406b71fe6682342ae5d8d26093e6f9e3d2e02777": {
+  "12202e4cc38985a37bcf4804f29ec2fcba162410eee777d96ecdbb2c4260b14b7e68": {
     "name": "mach_opus",
-    "url": "https://pkg.machengine.org/mach-opus/9dafde653d4c5f1610f84f8f40df370bce9c6439.tar.gz",
-    "hash": "sha256-KraFpScwvnMSA3m+8FKlaHyJcnvXoHcJVAH/Ah60MQo="
+    "url": "https://pkg.machengine.org/mach-opus/32712fd091636037959720ee00036a060816a4f0.tar.gz",
+    "hash": "sha256-xxNG1UQz3Oom+pKYTsXPD58dZ3SVoT1xSLzQEgZKXD0="
   },
-  "1220697fbdd2e7a15275f7ae435d09d726b622b52a222ddc4632c3ebeb89733bdbfb": {
+  "12202b922b88245c86d7a28ce31f43c62b994aebec5dbaec0ec8d703093e07bdc334": {
     "name": "opusfile",
-    "url": "https://pkg.machengine.org/opusfile/1c3b9b01e1d1ba5fec6e39ea2d1a789aeadc439a.tar.gz",
-    "hash": "sha256-faaOKUMRqdQ7k7QSTPy0XxATcYOKrxlz+DMpHHaCyrk="
+    "url": "https://pkg.machengine.org/opusfile/3eb6f231cb7bfed63d68e5b6bfdd5b08adb64223.tar.gz",
+    "hash": "sha256-g0Xh6x/kfjmKQ3GLqvgvRDKEvsFC/MbSZiz13dQMuwE="
   },
-  "12201cbb303d9417dfa24a8a019d510f03dfc575ea70ceb6ab42a98aa96ee31ff341": {
+  "1220c5f74686b95ba088b4349592b61d8b0cd91294a4a7ace5bb7d2398059062f109": {
     "name": "opus",
-    "url": "https://pkg.machengine.org/opus/8665e1f41c0facca6305e6caab75646bf219617e.tar.gz",
-    "hash": "sha256-QLK6PKelgCLs/H7JeCtnx0uYkggPDIrtN3T9X5QotTE="
+    "url": "https://pkg.machengine.org/opus/c15a0c4c0b7cc2028a8f953588cfafe827b8b608.tar.gz",
+    "hash": "sha256-RTs6V1PUyM3Go7GwbHQCMh0bgTdisqkguGGIfvWX5jY="
   },
   "1220eacee464baa636d82fd965f76ad63dab75b1b69e692270ae8e3615bebc012648": {
     "name": "ogg",
-    "url": "https://pkg.machengine.org/ogg/30eb809beaf36a25c156334038a0a13a152e344e.tar.gz",
-    "hash": "sha256-Cc2+ivaznbjy4eMfrRM+CRaeC3nOnoBbRnqZJYK9Uos="
+    "url": "https://pkg.machengine.org/ogg/65a455b417485ee0cd44a6b3d4540bfc6d5771cb.tar.gz",
+    "hash": "sha256-lCzRzzGOB1q8HHPwnaI3vLrcMKqpQwfgYS3J868Pc4E="
   },
-  "12209d09fe20f6f1580516dd23e5d29dd916d3bec1a2ea9f73b117829ba079dfdc73": {
+  "1220a330daee6fe10a02a6b981903877b2fab74afb64068a66f1f8a8135096a8e08a": {
     "name": "opusenc",
-    "url": "https://pkg.machengine.org/opusenc/30cfcf770ecf070fff1e497e7a24b8d399e27af2.tar.gz",
-    "hash": "sha256-/pEbJ4zJrrebO8sotngPOKPIYxJJsNgs18DEqy+A7PQ="
+    "url": "https://pkg.machengine.org/opusenc/456cbba13168cc5b999e19256bc78e977ce18fc8.tar.gz",
+    "hash": "sha256-eQQ7FozkE7coJHB6O8vAzhxtVe/RBVPbNocGRHld2n8="
   },
   "12204101e99906bee0fde5f82682bc822744a6f879dbf45374bebd92458492313df9": {
     "name": "mach_example_assets",
-    "url": "https://pkg.machengine.org/mach-example-assets/c2b0aae2b0f359d3d9bd6eea4560ef294126d1e5.tar.gz",
-    "hash": "sha256-ZvPWCFbFiOTpV5lyVRKnjG/sMUF9lITqXzoUchJqqtI="
+    "url": "https://pkg.machengine.org/mach-example-assets/dbc61a1470579a7834530567011227b1e680f2af.tar.gz",
+    "hash": "sha256-VtOoakejYqjl3INufnSTch3gEXbrhth6ryGzSfgqXSs="
   }
 }

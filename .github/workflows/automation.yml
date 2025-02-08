@@ -8,14 +8,23 @@ on:
 jobs:
   automation:
     runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: write
+
     steps:
+      - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
+        with:
+          determinate: true
+      - uses: DeterminateSystems/flakehub-cache-action@main
       - uses: cachix/cachix-action@master
         with:
           name: mach-flake
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          skipAddingSubstituter: true
       - run: |
           nix run .#mach.update
           nix run .#test.all
@@ -24,12 +33,6 @@ jobs:
           branch: ${{ github.head_ref || github.ref_name }}
           file-path: versions.json
           commit-msg: Update versions.json
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: test-room-7/action-update-file@v1.8.0
-        with:
-          branch: ${{ github.head_ref || github.ref_name }}
-          file-path: mach-binaries.json
-          commit-msg: Update mach-binaries.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: test-room-7/action-update-file@v1.8.0
         with:

@@ -28,8 +28,6 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    mach.addPaths(&exe.root_module);
-    mach.link(mach_dep.builder, exe);
     b.installArtifact(exe);
     exe.root_module.addImport("mach", mach_dep.module("mach"));
 

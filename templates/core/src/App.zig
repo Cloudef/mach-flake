@@ -2,32 +2,48 @@ const std = @import("std");
 const mach = @import("mach");
 const gpu = mach.gpu;
 
-pub const name = .app;
-pub const Mod = mach.Mod(@This());
+const App = @This();
 
-pub const systems = .{
-    .init = .{ .handler = init },
-    .after_init = .{ .handler = afterInit },
-    .deinit = .{ .handler = deinit },
-    .tick = .{ .handler = tick },
-};
+pub const mach_module = .app;
 
-title_timer: mach.Timer,
+pub const mach_systems = .{ .main, .init, .tick, .deinit };
+
+pub const main = mach.schedule(.{
+    .{ mach.Core, .init },
+    .{ App, .init },
+    .{ mach.Core, .main },
+});
+
+window: mach.ObjectID,
+title_timer: mach.time.Timer,
 pipeline: *gpu.RenderPipeline,
 
-pub fn deinit(core: *mach.Core.Mod, game: *Mod) void {
-    game.state().pipeline.release();
-    core.schedule(.deinit);
+pub fn init(
+    core: *mach.Core,
+    app: *App,
+    app_mod: mach.Mod(App),
+) !void {
+    core.on_tick = app_mod.id.tick;
+    core.on_exit = app_mod.id.deinit;
+
+    const window = try core.windows.new(.{
+        .title = "core-triangle",
+    });
+
+    // Store our render pipeline in our module's state, so we can access it later on.
+    app.* = .{
+        .window = window,
+        .title_timer = try mach.time.Timer.start(),
+        .pipeline = undefined,
+    };
 }
 
-fn init(game: *Mod, core: *mach.Core.Mod) !void {
-    core.schedule(.init);
-    game.schedule(.after_init);
-}
+fn setupPipeline(core: *mach.Core, app: *App, window_id: mach.ObjectID) !void {
+    var window = core.windows.getValue(window_id);
+    defer core.windows.setValueRaw(window_id, window);
 
-fn afterInit(game: *Mod, core: *mach.Core.Mod) !void {
     // Create our shader module
-    const shader_module = core.state().device.createShaderModuleWGSL("shader.wgsl", @embedFile("shader.wgsl"));
+    const shader_module = window.device.createShaderModuleWGSL("shader.wgsl", @embedFile("shader.wgsl"));
     defer shader_module.release();
 
     // Blend state describes how rendered colors get blended
@@ -35,7 +51,7 @@ fn afterInit(game: *Mod, core: *mach.Core.Mod) !void {
 
     // Color target describes e.g. the pixel format of the window we are rendering to.
     const color_target = gpu.ColorTargetState{
-        .format = core.get(core.state().main_window, .framebuffer_format).?,
+        .format = window.framebuffer_format,
         .blend = &blend,
     };
 
@@ -47,7 +63,7 @@ fn afterInit(game: *Mod, core: *mach.Core.Mod) !void {
     });
 
     // Create our render pipeline that will ultimately get pixels onto the screen.
-    const label = @tagName(name) ++ ".init";
+    const label = @tagName(mach_module) ++ ".init";
     const pipeline_descriptor = gpu.RenderPipeline.Descriptor{
         .label = label,
         .fragment = &fragment,
@@ -56,37 +72,34 @@ fn afterInit(game: *Mod, core: *mach.Core.Mod) !void {
             .entry_point = "vertex_main",
         },
     };
-    const pipeline = core.state().device.createRenderPipeline(&pipeline_descriptor);
-
-    // Store our render pipeline in our module's state, so we can access it later on.
-    game.init(.{
-        .title_timer = try mach.Timer.start(),
-        .pipeline = pipeline,
-    });
-    try updateWindowTitle(core);
-
-    core.schedule(.start);
+    app.pipeline = window.device.createRenderPipeline(&pipeline_descriptor);
 }
 
-fn tick(core: *mach.Core.Mod, game: *Mod) !void {
-    // TODO(important): event polling should occur in mach.Core module and get fired as ECS event.
-    // TODO(Core)
-    var iter = mach.core.pollEvents();
-    while (iter.next()) |event| {
+// TODO(object): window-title
+// try updateWindowTitle(core);
+
+pub fn tick(app: *App, core: *mach.Core) void {
+    while (core.nextEvent()) |event| {
         switch (event) {
-            .close => core.schedule(.exit), // Tell mach.Core to exit the app
+            .window_open => |ev| {
+                try setupPipeline(core, app, ev.window_id);
+            },
+            .close => core.exit(),
             else => {},
         }
     }
 
+    const window = core.windows.getValue(app.window);
+
     // Grab the back buffer of the swapchain
     // TODO(Core)
-    const back_buffer_view = mach.core.swap_chain.getCurrentTextureView().?;
+    const back_buffer_view = window.swap_chain.getCurrentTextureView().?;
     defer back_buffer_view.release();
 
     // Create a command encoder
-    const label = @tagName(name) ++ ".tick";
-    const encoder = core.state().device.createCommandEncoder(&.{ .label = label });
+    const label = @tagName(mach_module) ++ ".tick";
+
+    const encoder = window.device.createCommandEncoder(&.{ .label = label });
     defer encoder.release();
 
     // Begin render pass
@@ -104,7 +117,7 @@ fn tick(core: *mach.Core.Mod, game: *Mod) !void {
     defer render_pass.release();
 
     // Draw
-    render_pass.setPipeline(game.state().pipeline);
+    render_pass.setPipeline(app.pipeline);
     render_pass.draw(3, 1, 0, 0);
 
     // Finish render pass
@@ -113,28 +126,30 @@ fn tick(core: *mach.Core.Mod, game: *Mod) !void {
     // Submit our commands to the queue
     var command = encoder.finish(&.{ .label = label });
     defer command.release();
-    core.state().queue.submit(&[_]*gpu.CommandBuffer{command});
-
-    // Present the frame
-    core.schedule(.present_frame);
+    window.queue.submit(&[_]*gpu.CommandBuffer{command});
 
     // update the window title every second
-    if (game.state().title_timer.read() >= 1.0) {
-        game.state().title_timer.reset();
-        try updateWindowTitle(core);
-    }
+    // if (app.title_timer.read() >= 1.0) {
+    //     app.title_timer.reset();
+    //     // TODO(object): window-title
+    //     // try updateWindowTitle(core);
+    // }
 }
 
-fn updateWindowTitle(core: *mach.Core.Mod) !void {
-    try mach.Core.printTitle(
-        core,
-        core.state().main_window,
-        "core-custom-entrypoint [ {d}fps ] [ Input {d}hz ]",
-        .{
-            // TODO(Core)
-            mach.core.frameRate(),
-            mach.core.inputRate(),
-        },
-    );
-    core.schedule(.update);
+pub fn deinit(app: *App) void {
+    app.pipeline.release();
 }
+
+// TODO(object): window-title
+// fn updateWindowTitle(core: *mach.Core) !void {
+//     try core.printTitle(
+//         core.main_window,
+//         "core-custom-entrypoint [ {d}fps ] [ Input {d}hz ]",
+//         .{
+//             // TODO(Core)
+//             core.frameRate(),
+//             core.inputRate(),
+//         },
+//     );
+//     core.schedule(.update);
+// }
