@@ -14,8 +14,6 @@ let
     "x86_64-linux-musl" "aarch64-linux-musl"
     # broken in mach nominated zig
     "aarch64-linux-gnu"
-    # TODO: fix
-    "x86_64-macos-none" "aarch64-macos-none"
   ];
   working-triples = subtractLists ignored mach-binary-triples;
 in {
