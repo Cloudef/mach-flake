@@ -10,8 +10,8 @@ https://machengine.org/
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-* Mach Zig: `0.13.0-dev.351+64ef45eb0 @ 2024-06-01`
-* Mach Engine: `2f0415a60325868a72eab08e93746c804b9e66b9`
+* Mach Zig: `0.14.0-dev.2577+271452d22 @ 2024-12-30`
+* Mach Engine: `2410814e916970672a837c2d67a5a0a3f927ca4b`
 
 ### Mach Engine
 
@@ -104,9 +104,7 @@ mach-env = {
  # Enable OpenGL support.
  enableOpenGL ? true,
  # Enable Wayland support.
- # Disabled by default because mach-core example currently panics with:
- # error(mach): glfw: error.FeatureUnavailable: Wayland: The platform does not provide the window position
- enableWayland ? false,
+ enableWayland ? true,
  # Enable X11 support.
  enableX11 ? true,
  # Enable Alsa support.
@@ -124,11 +122,7 @@ inherit extraPkgs autofix;
 #! You can still compile to other platforms by using package and specifying zigTarget.
 #! When compiling to non-nix supported targets, you can't rely on pkgsForTarget, but rather have to provide all the pkgs yourself.
 #! NOTE: Even though target is supported by nix, cross-compiling to it might not be, in that case you should get an error.
-packageForTarget = target: (env.crossPkgsForTarget target).callPackage (pkgs.callPackage ./src/package.nix {
- inherit target;
- inherit (env) packageForTarget;
- inherit (env.lib) resolveTargetSystem;
-});
+packageForTarget = env.packageForTarget;
 
 #! Packages mach project.
 #! NOTE: You must first generate build.zig.zon2json-lock using zon2json-lock.
