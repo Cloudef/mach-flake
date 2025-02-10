@@ -28,26 +28,26 @@ jobs:
       - run: |
           nix run .#mach.update
           nix run .#test.all
-      - uses: test-room-7/action-update-file@v1.8.0
+      - uses: test-room-7/action-update-file@v2.0.0
         with:
           branch: ${{ github.head_ref || github.ref_name }}
           file-path: versions.json
           commit-msg: Update versions.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: test-room-7/action-update-file@v1.8.0
+      - uses: test-room-7/action-update-file@v2.0.0
         with:
           branch: ${{ github.head_ref || github.ref_name }}
           file-path: README.md
           commit-msg: Update README
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: test-room-7/action-update-file@v1.8.0
+      - uses: test-room-7/action-update-file@v2.0.0
         with:
           branch: ${{ github.head_ref || github.ref_name }}
           file-path: templates/**
           commit-msg: Update templates
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix run .#mach.update-flakes
-      - uses: test-room-7/action-update-file@v1.8.0
+      - uses: test-room-7/action-update-file@v2.0.0
         with:
           branch: ${{ github.head_ref || github.ref_name }}
           file-path: templates/**
