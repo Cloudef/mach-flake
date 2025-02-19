@@ -1,44 +1,46 @@
 const std = @import("std");
-const mach = @import("mach");
 
-// Although this function looks imperative, note that its job is to
-// declaratively construct a build graph that will be executed by an external
-// runner.
 pub fn build(b: *std.Build) void {
-    // Standard target options allows the person running `zig build` to choose
-    // what target to build for. Here we do not override the defaults, which
-    // means any target is allowed, and the default is native. Other options
-    // for restricting supported target set are available.
     const target = b.standardTargetOptions(.{});
-
-    // Standard optimization options allow the person running `zig build` to select
-    // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. Here we do not
-    // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
+    // Create our Mach app module, where all our code lives.
+    const app_mod = b.createModule(.{
+        .root_source_file = b.path("src/App.zig"),
+        .optimize = optimize,
+        .target = target,
+    });
+
+    // Add Mach import to our app.
     const mach_dep = b.dependency("mach", .{
         .target = target,
         .optimize = optimize,
     });
+    app_mod.addImport("mach", mach_dep.module("mach"));
 
-    const app = b.addModule("mach-core-app", .{ .root_source_file = b.path("src/App.zig") });
-    app.addImport("mach", mach_dep.module("mach"));
-
-    const exe = mach.addExecutable(mach_dep.builder, .{
+    // Have Mach create the executable for us
+    const exe = @import("mach").addExecutable(mach_dep.builder, .{
         .name = "mach-core-app",
-        .app = app,
+        .app = app_mod,
         .target = target,
         .optimize = optimize,
     });
     b.installArtifact(exe);
 
+    // Run the app when `zig build run` is invoked
     const run_cmd = b.addRunArtifact(exe);
     run_cmd.step.dependOn(b.getInstallStep());
-    if (b.args) |args| run_cmd.addArgs(args);
-
-    // This creates a build step. It will be visible in the `zig build --help` menu,
-    // and can be selected like this: `zig build run`
-    // This will evaluate the `run` step rather than the default, which is "install".
-    const run_step = b.step("run", "Run mach-core-app");
+    if (b.args) |args| {
+        run_cmd.addArgs(args);
+    }
+    const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
+
+    // Run tests when `zig build test` is run
+    const app_unit_tests = b.addTest(.{
+        .root_module = app_mod,
+    });
+    const run_app_unit_tests = b.addRunArtifact(app_unit_tests);
+    const test_step = b.step("test", "Run unit tests");
+    test_step.dependOn(&run_app_unit_tests.step);
 }

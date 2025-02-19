@@ -24,6 +24,8 @@ in {
       (cd templates/"$var"; nix run --override-input mach ../.. .#zon2json; printf '\n')
       printf -- 'run .#updateMachDeps (%s)\n' "$var"
       (cd templates/"$var"; nix run --override-input mach ../.. .#updateMachDeps; printf '\n')
+      printf -- 'run .#test (%s)\n' "$var"
+      (cd templates/"$var"; nix run --override-input mach ../.. .#test)
       printf -- 'build . (%s)\n' "$var"
       (cd templates/"$var"; nix build -L --override-input mach ../.. .)
       if [[ "$var" == engine ]]; then

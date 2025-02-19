@@ -55,6 +55,9 @@
       # nix run .
       apps.default = env.app [] "zig build run -- \"$@\"";
 
+      # nix run .#test
+      apps.test = env.app [] "zig build test -- \"$@\"";
+
       # nix run .#build
       apps.build = env.app [] "zig build \"$@\"";
 
