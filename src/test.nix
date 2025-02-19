@@ -20,8 +20,6 @@ in {
   # nix run .#test.all
   all = test-app [ file ] ''
     for var in engine core; do
-      printf -- 'run .#test (%s)\n' "$var"
-      (cd templates/"$var"; nix run --override-input mach ../.. .#test)
       printf -- 'run .#zon2json (%s)\n' "$var"
       (cd templates/"$var"; nix run --override-input mach ../.. .#zon2json; printf '\n')
       printf -- 'run .#updateMachDeps (%s)\n' "$var"

@@ -1,8 +1,8 @@
 {
-  "1220a7773e217670fcd702abdbd6a792fa293449334e8245eecfe887c67611660cc3": {
+  "12208832468a607cf5da2e724b4386dd41c433b08e98b1ef28302f0f981e96045c1d": {
     "name": "mach",
-    "url": "https://pkg.machengine.org/mach/2410814e916970672a837c2d67a5a0a3f927ca4b.tar.gz",
-    "hash": "sha256-xPhcsYOdOvRQqMgRyCS7BY0bEdTekMJcVtRlvOLuuU8="
+    "url": "https://pkg.machengine.org/mach/b14f8e69ee8eb834695eb0d0582053e555d10156.tar.gz",
+    "hash": "sha256-2gV4vzGsvORSHKihGiO2UJ4Vrmcyu8hSOAtBKiJ+Yn0="
   },
   "1220adfccce3dbc4e4fa8650fdaec110a676f6b8a1462ed6ef422815207f8288e9d2": {
     "name": "mach_freetype",

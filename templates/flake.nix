@@ -16,7 +16,7 @@
     in with builtins; with env.lib; with env.pkgs.lib; rec {
       # nix build .#target.{zig-target}
       # e.g. nix build .#target.x86_64-linux-gnu
-      packages.target = genAttrs allTargetTriples (target: env.packageForTarget target ({
+      packages.target = genAttrs allTargetTriples (target: env.packageForTarget target {
         src = cleanSource ./.;
 
         nativeBuildInputs = with env.pkgs; [];
@@ -31,7 +31,7 @@
         zigDisableWrap = true;
 
         zigBuildFlags = [ "-Doptimize=ReleaseSmall" ];
-      }));
+      });
 
       # nix build .
       packages.default = packages.target.${system-triple}.override {
@@ -58,17 +58,8 @@
       # nix run .#build
       apps.build = env.app [] "zig build \"$@\"";
 
-      # nix run .#test
-      apps.test = env.app [] "zig build test -- \"$@\"";
-
-      # nix run .#docs
-      apps.docs = env.app [] "zig build docs -- \"$@\"";
-
       # nix run .#updateMachDeps
       apps.updateMachDeps = env.updateMachDeps;
-
-      # nix run .#deps
-      apps.deps = env.showExternalDeps;
 
       # nix run .#zon2json
       apps.zon2json = env.app [env.zon2json] "zon2json \"$@\"";
