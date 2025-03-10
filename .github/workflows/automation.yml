@@ -26,13 +26,14 @@ jobs:
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
           skipAddingSubstituter: true
       - run: |
-          nix run .#mach.update
-          nix run .#test.all
+          nix flake update
+          nix run .#mach-update
+          nix run .#test-all
       - uses: test-room-7/action-update-file@v2.0.0
         with:
           branch: ${{ github.head_ref || github.ref_name }}
-          file-path: versions.json
-          commit-msg: Update versions.json
+          file-path: src/versions.nix
+          commit-msg: Update versions.nix
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: test-room-7/action-update-file@v2.0.0
         with:
@@ -46,7 +47,7 @@ jobs:
           file-path: templates/**
           commit-msg: Update templates
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - run: nix run .#mach.update-flakes
+      - run: nix run .#mach-update-flakes
       - uses: test-room-7/action-update-file@v2.0.0
         with:
           branch: ${{ github.head_ref || github.ref_name }}

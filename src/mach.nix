@@ -1,7 +1,6 @@
 {
   test-app
-  , zon2json
-  , curl
+  , zig2nix
   , jq
   , coreutils
   , gnused
@@ -10,25 +9,22 @@
 }:
 
 {
-  # nix run .#mach.update-zig-versions
-  update-zig-versions = test-app [ curl jq ] ''
-    curl -sSL https://machengine.org/zig/index.json | jq 'with_entries(select(.key|(startswith("mach-") or endswith("-mach"))))'
-    '';
-
-  # nix run .#mach.update-flakes
+  # nix run .#mach-update-flakes
   update-flakes = test-app [ git gnused ] ''
     if [[ "''${1-}" != "force" ]] && [[ "$(git log --format=%B -n 1 HEAD)" == "Update templates rev" ]]; then
       echo "Template revisions are up-to-date"
       exit 0
     fi
     flake_rev="$(git rev-parse HEAD)"
-    sed "s/SED_REPLACE_REV/$flake_rev/" templates/flake.nix > templates/engine/flake.nix
+    sed "s#@SED_REPLACE_REV@#$flake_rev#" templates/flake.nix > templates/engine/flake.nix
+    sed -i "s#@SED_ZIG_BIN@#mach-app#" templates/engine/flake.nix
     sed 's/mach-engine-project/mach-core-project/g' templates/flake.nix > templates/core/flake.nix
-    sed -i "s/SED_REPLACE_REV/$flake_rev/" templates/core/flake.nix
+    sed -i "s#@SED_REPLACE_REV@#$flake_rev#" templates/core/flake.nix
+    sed -i "s#@SED_ZIG_BIN@#mach-core-app#" templates/core/flake.nix
     '';
 
-  # nix run .#mach.update
-  update = test-app [ coreutils gnused git zig jq zon2json ] ''
+  # nix run .#mach-update
+  update = test-app [ coreutils gnused git zig jq zig2nix ] ''
     tmpdir="$(mktemp -d)"
     trap 'rm -rf "$tmpdir"' EXIT
 
@@ -61,7 +57,7 @@
     mach_update=0
 
     read -r rev _ < <(git ls-remote https://github.com/hexops/mach.git HEAD)
-    old_url="$(zon2json templates/engine/build.zig.zon | jq -er '.dependencies.mach.url')"
+    old_url="$(zig2nix zon2json templates/engine/build.zig.zon | jq -er '.dependencies.mach.url')"
     if [[ "$old_url" != "https://pkg.machengine.org/mach/$rev.tar.gz" ]]; then
       git clone https://github.com/hexops/mach.git "$tmpdir"/mach
 
@@ -83,10 +79,10 @@
       exit 0
     fi
 
-    nix run .#mach.update-zig-versions > versions.json
-    nix run .#mach.update-flakes -- force
+    nix run .#update-versions
+    nix run .#mach-update-flakes -- force
     for var in engine core; do
-      (cd templates/"$var"; nix run --override-input mach ../.. .#zon2json-lock)
+      (cd templates/"$var"; nix run --override-input mach ../.. .#zig2nix -- zon2lock)
       # Call using nix run because update-versions may change the mach nominated zig version
       nix run .#autofix -- templates/"$var"
     done

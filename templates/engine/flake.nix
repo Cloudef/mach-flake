@@ -2,7 +2,7 @@
   description = "mach-engine-project flake";
 
   inputs = {
-    mach.url = "github:Cloudef/mach-flake?rev=5d5236941ad5a805a3242956fcd042c17a6d39d6";
+    mach.url = "github:Cloudef/mach-flake?rev=e6f4b516075587999bd3cf3a36d3cb006f32a3f1";
   };
 
   outputs = { mach, ... }: let
@@ -12,68 +12,58 @@
       # Check the flake.nix in mach-flake project for more options:
       # <https://github.com/Cloudef/mach-flake/blob/master/flake.nix>
       env = mach.outputs.mach-env.${system} {};
-      system-triple = env.lib.zigTripleFromString system;
-    in with builtins; with env.lib; with env.pkgs.lib; rec {
-      # nix build .#target.{zig-target}
-      # e.g. nix build .#target.x86_64-linux-gnu
-      packages.target = genAttrs allTargetTriples (target: env.packageForTarget target {
+    in with builtins; with env.pkgs.lib; rec {
+      # Produces clean binaries meant to be ship'd outside of nix
+      # e.g. nix build .#foreign
+      packages.foreign = env.package {
         src = cleanSource ./.;
-
-        nativeBuildInputs = with env.pkgs; [];
-        buildInputs = with env.pkgsForTarget target; [];
-
-        # Smaller binaries and avoids shipping glibc.
-        # XXX: Disabled for now due to builds failing.
-        zigPreferMusl = false;
-
-        # This disables LD_LIBRARY_PATH mangling, binary patching etc...
-        # The package won't be usable inside nix.
-        zigDisableWrap = true;
-
         zigBuildFlags = [ "-Doptimize=ReleaseSmall" ];
-      });
+
+        # Packages required for compiling
+        nativeBuildInputs = with env.pkgs; [];
+
+        # Packages required for linking
+        buildInputs = with env.pkgs; [];
+      };
 
       # nix build .
-      packages.default = packages.target.${system-triple}.override {
-        # Prefer nix friendly settings.
-        zigPreferMusl = false;
-        zigDisableWrap = false;
-      };
+      packages.default = packages.foreign.overrideAttrs (attrs: {
+        # Executables required for runtime
+        # These packages will be added to the PATH
+        zigWrapperBins = with env.pkgs; [];
+
+        # Libraries required for runtime
+        # These packages will be added to the LD_LIBRARY_PATH
+        zigWrapperLibs = with env.pkgs; [];
+      });
 
       # For bundling with nix bundle for running outside of nix
       # example: https://github.com/ralismark/nix-appimage
-      apps.bundle.target = genAttrs allTargetTriples (target: let
-        pkg = packages.target.${target};
-      in {
+      apps.bundle = {
         type = "app";
-        program = "${pkg}/bin/myapp";
-      });
-
-      # default bundle
-      apps.bundle.default = apps.bundle.target.${system-triple};
+        program = "${packages.foreign}/bin/mach-app";
+      };
 
       # nix run .
       apps.default = env.app [] "zig build run -- \"$@\"";
 
-      # nix run .#test
-      apps.test = env.app [] "zig build test -- \"$@\"";
-
       # nix run .#build
       apps.build = env.app [] "zig build \"$@\"";
+
+      # nix run .#test
+      apps.test = env.app [] "zig build test -- \"$@\"";
 
       # nix run .#updateMachDeps
       apps.updateMachDeps = env.updateMachDeps;
 
-      # nix run .#zon2json
-      apps.zon2json = env.app [env.zon2json] "zon2json \"$@\"";
-
-      # nix run .#zon2json-lock
-      apps.zon2json-lock = env.app [env.zon2json-lock] "zon2json-lock \"$@\"";
-
-      # nix run .#zon2nix
-      apps.zon2nix = env.app [env.zon2nix] "zon2nix \"$@\"";
+      # nix run .#zig2nix
+      apps.zig2nix = env.app [] "zig2nix \"$@\"";
 
       # nix develop
-      devShells.default = env.mkShell {};
+      devShells.default = env.mkShell {
+        # Packages required for compiling, linking and running
+        # Libraries added here will be automatically added to the LD_LIBRARY_PATH and PKG_CONFIG_PATH
+        nativeBuildInputs = with env.pkgs; [];
+      };
     }));
 }
