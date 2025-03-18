@@ -8,8 +8,8 @@
     },
     .dependencies = .{
       .mach = .{
-        .url = "https://pkg.machengine.org/mach/aae6ab3afa8b9ff6ec9055209e6356004462b41f.tar.gz",
-        .hash = "1220d94ff7729a1176cfd40062aa8c14a0decf27c68f5308097f5f2c62a808daac6f",
+        .url = "https://pkg.machengine.org/mach/af1cf9865bbd7e79e05c1a86560945afd2342891.tar.gz",
+        .hash = "1220e3e557f8659f4b30c66280bcd226d295c59aa4a3e9d2947d575aa202c05acdda",
       },
     },
 }
