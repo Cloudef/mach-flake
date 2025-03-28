@@ -744,7 +744,6 @@ let
 in
 {
   latest = bin meta-latest;
-  latest-src = src meta-latest;
   src-latest = src meta-latest;
   "2024_11_0" = bin meta-2024_11_0;
   src-2024_11_0 = src meta-2024_11_0;
