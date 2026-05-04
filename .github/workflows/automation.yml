@@ -29,26 +29,26 @@ jobs:
           nix flake update
           nix run .#mach-update
           nix run .#test-all
-      - uses: test-room-7/action-update-file@v2.0.0
+      - uses: test-room-7/action-update-file@v2.1.0
         with:
           branch: ${{ github.head_ref || github.ref_name }}
           file-path: src/versions.nix
           commit-msg: Update versions.nix
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: test-room-7/action-update-file@v2.0.0
+      - uses: test-room-7/action-update-file@v2.1.0
         with:
           branch: ${{ github.head_ref || github.ref_name }}
           file-path: README.md
           commit-msg: Update README
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: test-room-7/action-update-file@v2.0.0
+      - uses: test-room-7/action-update-file@v2.1.0
         with:
           branch: ${{ github.head_ref || github.ref_name }}
           file-path: templates/**
           commit-msg: Update templates
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: nix run .#mach-update-flakes
-      - uses: test-room-7/action-update-file@v2.0.0
+      - uses: test-room-7/action-update-file@v2.1.0
         with:
           branch: ${{ github.head_ref || github.ref_name }}
           file-path: templates/**
